@@ -1,0 +1,69 @@
+<zui-card [elevated]="true" title="Controle de máquina de estados">
+  <div class="ui-state__header">
+    <zui-badge
+      [tone]="current() === 'ready' ? 'success' : current() === 'error' ? 'danger' : 'neutral'"
+    >
+      {{ current() | uppercase }}
+    </zui-badge>
+    <span class="ui-state__hint">{{ hint() }}</span>
+  </div>
+
+  @if (current() === 'idle') {
+  <section class="ui-state__slot">
+    <p>Use o botão abaixo para simular uma carga.</p>
+    <zui-button tone="primary" size="lg" (click)="load()">Carregar</zui-button>
+  </section>
+  } @if (current() === 'loading') {
+  <section class="ui-state__slot ui-state__slot--center">
+    <zui-badge tone="warning">carregando</zui-badge>
+    <p>Buscando dados fictícios com atraso controlado.</p>
+  </section>
+  } @if (current() === 'error') {
+  <section class="ui-state__slot">
+    <p>Algo falhou. Tente novamente.</p>
+    <zui-button tone="danger" (click)="retry()">Tentar novamente</zui-button>
+  </section>
+  } @if (current() === 'ready') {
+  <section class="ui-state__list">
+    @for (task of tasks(); track task.id) {
+    <article class="ui-state__item">
+      <div class="ui-state__item-main">
+        <div>
+          <p class="ui-state__title">{{ task.title }}</p>
+          <p class="ui-state__meta">{{ task.owner }}</p>
+        </div>
+        <zui-badge [tone]="priorityTone(task.priority)"
+          >{{ task.priority }}</zui-badge
+        >
+      </div>
+      <div class="ui-state__actions">
+        <zui-button tone="ghost" size="sm" (click)="confirm(task)"
+          >Aprovar</zui-button
+        >
+      </div>
+    </article>
+    }
+  </section>
+  } @if (current() === 'confirming' || current() === 'mutating') {
+  <section class="ui-state__slot">
+    <p>Confirma executar a ação para "{{ pendingTask()?.title }}"?</p>
+    <div class="ui-state__actions">
+      <zui-button tone="subtle" (click)="reset()">Cancelar</zui-button>
+      <zui-button
+        tone="primary"
+        [disabled]="current() === 'mutating'"
+        (click)="approve(pendingTask()!)"
+      >
+        {{ current() === 'mutating' ? 'Executando...' : 'Confirmar' }}
+      </zui-button>
+    </div>
+  </section>
+  }
+
+  <div footer>
+    <div class="ui-state__footer">
+      <zui-button tone="subtle" (click)="reset()">Reset</zui-button>
+      <zui-button tone="ghost" (click)="load()">Recarregar</zui-button>
+    </div>
+  </div>
+</zui-card>

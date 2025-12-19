@@ -1,0 +1,17 @@
+.ui-phone-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ui-phone-field__errors {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ui-phone-field__error {
+  color: #d92d20;
+  font-size: 12px;
+  margin: 0;
+}

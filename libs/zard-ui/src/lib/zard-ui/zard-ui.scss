@@ -1,0 +1,237 @@
+:root {
+  --zui-bg: #0e1116;
+  --zui-surface: #111720;
+  --zui-border: #1f2a3a;
+  --zui-muted: #94a3b8;
+  --zui-text: #e2e8f0;
+  --zui-primary: #7c3aed;
+  --zui-primary-strong: #a855f7;
+  --zui-success: #10b981;
+  --zui-warning: #f59e0b;
+  --zui-danger: #ef4444;
+  --zui-radius: 12px;
+  --zui-gap: 10px;
+  --zui-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  font-family:
+    'Space Grotesk',
+    'Soehne',
+    'Inter',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.zui-card {
+  background: linear-gradient(
+    145deg,
+    rgba(17, 23, 32, 0.9),
+    rgba(17, 23, 32, 0.7)
+  );
+  border: 1px solid var(--zui-border);
+  border-radius: var(--zui-radius);
+  padding: 1.2rem;
+  color: var(--zui-text);
+  display: flex;
+  flex-direction: column;
+  gap: var(--zui-gap);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.zui-card--elevated {
+  box-shadow: var(--zui-shadow);
+}
+
+.zui-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.zui-card__title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.zui-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zui-gap);
+}
+
+.zui-card__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.zui-button {
+  appearance: none;
+  border: none;
+  border-radius: calc(var(--zui-radius) - 4px);
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background 120ms ease;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--zui-text);
+  background: var(--zui-border);
+}
+
+.zui-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.zui-button__label {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.zui-button--primary {
+  background: linear-gradient(
+    135deg,
+    var(--zui-primary),
+    var(--zui-primary-strong)
+  );
+  color: #0b0417;
+  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.35);
+}
+
+.zui-button--ghost {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--zui-border);
+}
+
+.zui-button--danger {
+  background: linear-gradient(135deg, #ef4444, #f87171);
+  color: #1a0505;
+}
+
+.zui-button--subtle {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--zui-text);
+}
+
+.zui-button--sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.zui-button--md {
+  padding: 0.55rem 1rem;
+  font-size: 0.95rem;
+}
+
+.zui-button--lg {
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+}
+
+.zui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid transparent;
+}
+
+.zui-badge--neutral {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--zui-border);
+}
+
+.zui-badge--success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #22c55e;
+}
+
+.zui-badge--warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+}
+
+.zui-badge--danger {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+.zui-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  color: var(--zui-text);
+}
+
+.zui-toggle input {
+  display: none;
+}
+
+.zui-toggle__track {
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--zui-border);
+  position: relative;
+  transition: background 120ms ease;
+}
+
+.zui-toggle__thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--zui-text);
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 140ms ease;
+}
+
+.zui-toggle input:checked + .zui-toggle__track {
+  background: linear-gradient(
+    135deg,
+    var(--zui-primary),
+    var(--zui-primary-strong)
+  );
+}
+
+.zui-toggle input:checked + .zui-toggle__track .zui-toggle__thumb {
+  transform: translateX(20px);
+}
+
+.zui-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--zui-text);
+}
+
+.zui-input__control {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--zui-border);
+  border-radius: calc(var(--zui-radius) - 6px);
+  padding: 0.65rem 0.75rem;
+  color: var(--zui-text);
+}
+
+.zui-input__control:focus {
+  outline: 2px solid var(--zui-primary);
+  outline-offset: 1px;
+}
+
+.zui-input__hint {
+  color: var(--zui-muted);
+  font-size: 0.9rem;
+}

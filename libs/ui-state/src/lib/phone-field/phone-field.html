@@ -1,0 +1,30 @@
+@if (visible()) {
+<div class="ui-phone-field">
+  <label class="zui-input">
+    @if (label()) {
+    <span class="zui-input__label">{{ label() }}</span>
+    }
+    <input
+      class="zui-input__control"
+      type="tel"
+      inputmode="tel"
+      [placeholder]="placeholder()"
+      [value]="value()"
+      [disabled]="disabled()"
+      (input)="onInput($event)"
+      (blur)="onBlur()"
+    />
+    @if (hint()) {
+    <small class="zui-input__hint">{{ hint() }}</small>
+    }
+  </label>
+
+  @if (errors().length) {
+  <div class="ui-phone-field__errors">
+    @for (err of errors(); track err) {
+    <p class="ui-phone-field__error">{{ err }}</p>
+    }
+  </div>
+  }
+</div>
+}
