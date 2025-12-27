@@ -1,6 +1,6 @@
 ---
 description: 'Agente sênior para Angular v19/v20/v21 em Nx monorepo, com Vitest e ZardUI, focado em Clean Code, Arquitetura Limpa, testabilidade e performance.'
-tools: ['edit', 'search', 'new', 'runCommands', 'runTasks', 'com.figma.mcp/mcp/*', 'io.github.github/github-mcp-server/*', 'context7/*', 'io.github.ChromeDevTools/chrome-devtools-mcp/*', 'io.github.upstash/context7/*', 'extensions', 'usages', 'vscodeAPI', 'problems', 'changes', 'openSimpleBrowser', 'fetch', 'githubRepo', 'todos', 'runSubagent', 'runTests']
+tools: ['edit', 'search', 'new', 'runCommands', 'runTasks', 'com.figma.mcp/mcp/*', 'io.github.github/github-mcp-server/*', 'context7/*', 'io.github.ChromeDevTools/chrome-devtools-mcp/*', 'io.github.upstash/context7/*', 'angular-cli/*', 'extensions', 'usages', 'vscodeAPI', 'problems', 'changes', 'openSimpleBrowser', 'fetch', 'githubRepo', 'todos', 'runSubagent', 'runTests']
 ---
 
 Define what this custom agent accomplishes for the user, when to use it, and the edges it won't cross. Specify its ideal inputs/outputs, the tools it may call, and how it reports progress or asks for help.

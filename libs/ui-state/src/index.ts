@@ -8,4 +8,4 @@ export * from './lib/state-machine/state-engine';
 export * from './lib/state-machine/state-types';
 export * from './lib/state-machine/machine-builder';
 export * from './lib/state-machine/machine-state';
-export * from './lib/state-machine/field-machine';
+export * from './lib/state-machine/field-machine/field-machine';

@@ -13,4 +13,65 @@
   <section class="shell__content">
     <ui-state-panel />
   </section>
+
+  <section class="shell__content card">
+    <header class="card__header">
+      <p class="card__eyebrow">Field machine</p>
+      <h2>Phone field (CVA + FormControl)</h2>
+      <p class="card__lede">
+        Componente conectado à máquina de campo, usando reactive forms e
+        exibindo o store em tempo real.
+      </p>
+    </header>
+
+    <form class="card__body" (submit)="$event.preventDefault()">
+      <ui-phone-field
+        class="card__control"
+        [formControl]="phoneControl"
+        [storeOverrides]="storeOverrides()"
+        (storeChange)="onStoreChange($event)"
+      />
+
+      <div class="card__summary">
+        <div>
+          <span class="summary__label">Valor</span>
+          <strong>{{ phoneValue() }}</strong>
+        </div>
+        <div>
+          <span class="summary__label">Status</span>
+          <strong>{{ phoneStore().props.status }}</strong>
+        </div>
+        <div>
+          <span class="summary__label">Erros</span>
+          <strong>
+            {{ phoneStore().valueState.errors.join(', ') || '—' }}
+          </strong>
+        </div>
+      </div>
+
+      <details class="card__details">
+        <summary>Ver contexto da máquina</summary>
+        <div class="editor">
+          <div class="editor__actions">
+            <button type="button" (click)="applyContextFromEditor()">
+              Aplicar contexto
+            </button>
+            <button type="button" (click)="resetEditorToStore()">
+              Resetar para store atual
+            </button>
+          </div>
+          <textarea
+            class="editor__textarea"
+            [value]="contextEditor()"
+            (input)="onEditorInput($event)"
+            rows="10"
+            spellcheck="false"
+          ></textarea>
+          @if (contextError()) {
+          <p class="editor__error">{{ contextError() }}</p>
+          }
+        </div>
+      </details>
+    </form>
+  </section>
 </main>

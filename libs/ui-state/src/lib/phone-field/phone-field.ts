@@ -11,14 +11,18 @@ import {
   effect,
   signal,
 } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  FormControl,
+  NG_VALUE_ACCESSOR,
+} from '@angular/forms';
 import {
   PhoneStore,
   PhoneStoreOverrides,
   createPhoneStore,
   mergePhoneStoreConfig,
 } from '../store/phone-store';
-import { createFieldMachine } from '../state-machine/field-machine';
+import { createFieldMachine } from '../state-machine/field-machine/field-machine';
 
 @Component({
   selector: 'ui-phone-field',
@@ -77,6 +81,12 @@ export class UiPhoneField
     createPhoneStore().valueState,
   );
 
+  private readonly control = new FormControl<string>('', {
+    nonNullable: true,
+  });
+
+  private readonly machineSig = signal(this.createMachine(createPhoneStore()));
+
   private readonly store = computed<PhoneStore>(() => ({
     props: this.props(),
     data: this.data(),
@@ -95,13 +105,9 @@ export class UiPhoneField
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
-  private machine = createFieldMachine<string, PhoneStore['fieldProperties']>(
-    createPhoneStore(),
-  );
-
   private readonly syncEffect = effect(
     () => {
-      const ctx = this.machine.context();
+      const ctx = this.machineSig().context();
       this.applyContextSlices(ctx);
       this.storeChange.emit(ctx);
     },
@@ -124,12 +130,13 @@ export class UiPhoneField
       this.storeOverrides,
     );
     const next = createPhoneStore(merged);
-    // stop previous machine before swapping
-    this.machine.stop();
-    this.machine = createFieldMachine<string, PhoneStore['fieldProperties']>(
-      next,
-    );
+    const currentMachine = this.machineSig();
+    currentMachine.stop();
+    const nextMachine = this.createMachine(next);
+    this.machineSig.set(nextMachine);
     this.applyContextSlices(next);
+    // garante que o host receba o contexto inicial após rebuild
+    this.storeChange.emit(next);
   }
 
   protected readonly value = computed(() => this.valueState().current);
@@ -188,9 +195,9 @@ export class UiPhoneField
 
   private applyValue(nextValue: string, extraState?: { touched?: boolean }) {
     const touched = extraState?.touched ?? this.valueState().touched;
-    this.machine.send({ type: 'CHANGE', value: nextValue });
+    this.machineSig().send({ type: 'CHANGE', value: nextValue });
     if (touched) {
-      this.machine.send({ type: 'BLUR' });
+      this.machineSig().send({ type: 'BLUR' });
     }
   }
 
@@ -199,7 +206,11 @@ export class UiPhoneField
     if (value === null || value === undefined) {
       return;
     }
-    this.machine.send({ type: 'CHANGE', value });
+    // evita loops quando o FormControl externo escreve o mesmo valor
+    if (this.valueState().current === value) {
+      return;
+    }
+    this.machineSig().send({ type: 'CHANGE', value });
   }
 
   registerOnChange(fn: (value: string) => void): void {
@@ -211,12 +222,14 @@ export class UiPhoneField
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.machine.send({ type: 'SET_DISABLED', disabled: isDisabled });
+    // ignore se o estado já coincide para evitar ciclo de SET_DISABLED
+    if (this.control.disabled === isDisabled) return;
+    this.machineSig().send({ type: 'SET_DISABLED', disabled: isDisabled });
   }
 
   ngOnDestroy(): void {
     this.syncEffect.destroy();
-    this.machine.stop();
+    this.machineSig().stop();
   }
 
   private applyContextSlices(ctx: PhoneStore) {
@@ -232,5 +245,11 @@ export class UiPhoneField
     this.hintsControl.set(ctx.hintsControl);
     this.infoControl.set(ctx.infoControl);
     this.valueState.set(ctx.valueState);
+  }
+
+  private createMachine(store: PhoneStore) {
+    return createFieldMachine<string, PhoneStore['fieldProperties']>(store, {
+      control: this.control,
+    });
   }
 }
