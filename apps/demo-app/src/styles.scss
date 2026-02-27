@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -10,5 +10,19 @@
 
 body {
   margin: 0;
-  background: #0b0f15;
+  min-height: 100vh;
+  font-family: 'Oxanium', 'Space Grotesk', sans-serif;
+  color: #1a1a1a;
+  background:
+    radial-gradient(
+      circle at 20% 5%,
+      rgba(63, 169, 245, 0.35),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 80% 12%,
+      rgba(68, 192, 106, 0.26),
+      transparent 40%
+    ),
+    linear-gradient(180deg, #0d8894 0%, #046270 40%, #04414d 100%);
 }

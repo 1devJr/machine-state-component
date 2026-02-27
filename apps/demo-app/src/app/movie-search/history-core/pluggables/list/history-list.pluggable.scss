@@ -1,0 +1,23 @@
+.history-list {
+  h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ffe082;
+  }
+
+  ol {
+    margin: 0;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.35rem;
+    color: #fff7e6;
+  }
+
+  .empty {
+    margin: 0;
+    color: #ffd7cf;
+    font-size: 0.9rem;
+  }
+}

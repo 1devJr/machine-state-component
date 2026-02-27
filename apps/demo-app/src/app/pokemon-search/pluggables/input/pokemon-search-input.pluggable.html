@@ -1,0 +1,13 @@
+<div class="search-input">
+  <input
+    type="search"
+    [value]="localQuery()"
+    [placeholder]="mergedConfig().placeholder"
+    (input)="onInput($event)"
+    (keyup.enter)="submit()"
+  />
+
+  <button type="button" (click)="submit()">
+    {{ mergedConfig().buttonLabel }}
+  </button>
+</div>

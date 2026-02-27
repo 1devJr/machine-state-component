@@ -1,0 +1,85 @@
+<section class="details">
+  <header class="details__header">
+    <h3>Detalhes do Pokemon</h3>
+  </header>
+
+  @if (!vm().selectedPokemonName) {
+  <p class="details__hint">{{ mergedConfig().emptyMessage }}</p>
+  } @if (vm().detailsStatus === 'loading') {
+  <p class="details__hint">
+    Carregando detalhes de {{ vm().selectedPokemonName }}...
+  </p>
+  } @if (vm().detailsStatus === 'error') {
+  <p class="details__error">{{ vm().detailsErrorMessage }}</p>
+  } @if (vm().detailsStatus === 'ready' && vm().details) {
+  <article class="pokemon-card">
+    <div class="pokemon-card__hero">
+      @if (vm().details?.spriteUrl) {
+      <img
+        [src]="vm().details!.spriteUrl!"
+        [alt]="vm().details!.name"
+        width="140"
+        height="140"
+      />
+      }
+      <div>
+        <h4>{{ vm().details!.name }}</h4>
+        <p>#{{ vm().details!.id }}</p>
+        <p>Altura: {{ vm().details!.heightDecimeters / 10 }}m</p>
+        <p>Peso: {{ vm().details!.weightHectograms / 10 }}kg</p>
+      </div>
+    </div>
+
+    <div class="pokemon-card__meta">
+      <div>
+        <strong>Tipos</strong>
+        <div class="chip-list">
+          @for (type of vm().details!.types; track type) {
+          <span class="chip chip--type">{{ type }}</span>
+          }
+        </div>
+      </div>
+
+      <div>
+        <strong>Habilidades</strong>
+        <div class="chip-list">
+          @for (ability of vm().details!.abilities; track ability) {
+          <span class="chip chip--ability">{{ ability }}</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <strong>Status base</strong>
+      <ul class="stats">
+        @for (stat of vm().details!.stats; track stat.name) {
+        <li>
+          <span>{{ stat.name }}</span>
+          <strong>{{ stat.value }}</strong>
+        </li>
+        }
+      </ul>
+    </div>
+
+    <div>
+      <strong>Evolucoes</strong>
+      @if (vm().details!.evolutions.length === 0) {
+      <p class="details__hint">Sem evolucoes registradas.</p>
+      } @else {
+      <div class="chip-list">
+        @for (evolution of vm().details!.evolutions; track evolution) {
+        <button
+          type="button"
+          class="chip chip--evolution"
+          (click)="onSelect(evolution)"
+        >
+          {{ evolution }}
+        </button>
+        }
+      </div>
+      }
+    </div>
+  </article>
+  }
+</section>

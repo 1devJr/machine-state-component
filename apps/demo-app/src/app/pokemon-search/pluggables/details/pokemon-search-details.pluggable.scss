@@ -1,0 +1,105 @@
+.details {
+  border: 2px solid #55657a;
+  border-radius: 1rem;
+  padding: 0.85rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f7fd 100%);
+}
+
+.details__header h3 {
+  margin: 0;
+  color: #223041;
+}
+
+.details__hint {
+  margin: 0.6rem 0;
+  color: #3e4a58;
+  font-weight: 600;
+}
+
+.details__error {
+  color: var(--pokemon-red);
+  font-weight: 700;
+}
+
+.pokemon-card {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.pokemon-card__hero {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.pokemon-card__hero h4 {
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.pokemon-card__hero p {
+  margin: 0.1rem 0;
+}
+
+.pokemon-card__meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.chip {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.82rem;
+  text-transform: capitalize;
+}
+
+.chip--type {
+  background: #1f7ebd;
+  color: var(--pokemon-white);
+  font-weight: 700;
+}
+
+.chip--ability {
+  background: #2d8d4c;
+  color: var(--pokemon-white);
+  font-weight: 700;
+}
+
+.chip--evolution {
+  background: #f2cc0c;
+  color: var(--pokemon-ink);
+  border: 1px solid #8d7716;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.stats {
+  list-style: none;
+  padding: 0;
+  margin: 0.45rem 0 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.stats li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0.45rem;
+  border-radius: 0.35rem;
+  background: #f4f6fb;
+}
+
+@media (max-width: 720px) {
+  .pokemon-card__meta {
+    grid-template-columns: 1fr;
+  }
+}

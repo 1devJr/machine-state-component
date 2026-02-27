@@ -11,7 +11,9 @@
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/apps/demo-app",
+        "index": "apps/demo-app/src/index.html",
         "browser": "apps/demo-app/src/main.ts",
+        "polyfills": ["zone.js"],
         "tsConfig": "apps/demo-app/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
@@ -20,12 +22,7 @@
             "input": "apps/demo-app/public"
           }
         ],
-        "styles": ["apps/demo-app/src/styles.scss"],
-        "server": "apps/demo-app/src/main.server.ts",
-        "ssr": {
-          "entry": "apps/demo-app/src/server.ts"
-        },
-        "outputMode": "server"
+        "styles": ["apps/demo-app/src/styles.scss"]
       },
       "configurations": {
         "production": {
@@ -54,6 +51,10 @@
     "serve": {
       "continuous": true,
       "executor": "@angular/build:dev-server",
+      "options": {
+        "host": "127.0.0.1",
+        "port": 4202
+      },
       "configurations": {
         "production": {
           "buildTarget": "demo-app:build:production"
@@ -80,17 +81,9 @@
       "executor": "@nx/web:file-server",
       "options": {
         "buildTarget": "demo-app:build",
-        "port": 4200,
+        "port": 4202,
         "staticFilePath": "dist/apps/demo-app/browser",
         "spa": true
-      }
-    },
-    "e2e": {
-      "executor": "@nx/cypress:cypress",
-      "options": {
-        "cypressConfig": "apps/demo-app/cypress.config.ts",
-        "testingType": "e2e",
-        "devServerTarget": "demo-app:serve"
       }
     }
   }

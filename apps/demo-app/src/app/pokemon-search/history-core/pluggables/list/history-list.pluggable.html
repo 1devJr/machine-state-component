@@ -1,0 +1,16 @@
+<section class="history-list">
+  <h5>{{ mergedConfig().title }}</h5>
+
+  @if (rows().length === 0) {
+  <p class="history-list__empty">{{ mergedConfig().emptyMessage }}</p>
+  } @else {
+  <ul class="history-list__items">
+    @for (row of rows(); track row.term) {
+    <li class="history-list__item">
+      <span>{{ row.term }}</span>
+      <strong>{{ row.count }}</strong>
+    </li>
+    }
+  </ul>
+  }
+</section>

@@ -1,0 +1,32 @@
+<section class="history-core">
+  <header class="history-core__header">
+    <div>
+      <h4>History Child Core</h4>
+      <p>Componente filho com engine propria e pluggables internos.</p>
+    </div>
+    <div class="history-core__actions">
+      <small>Total de buscas: {{ totalSearches() }}</small>
+      <button type="button" (click)="clearHistory()">Limpar Historico</button>
+    </div>
+  </header>
+
+  <section class="history-core__body">
+    <article class="history-core__panel">
+      <span class="history-core__label">Lista</span>
+      <ng-container
+        [uiEngineSlot]="core().composition.slotIds.list"
+        [pluggable]="core().composition.slots.list"
+        [facade]="core().facade"
+      ></ng-container>
+    </article>
+
+    <article class="history-core__panel">
+      <span class="history-core__label">Grafico</span>
+      <ng-container
+        [uiEngineSlot]="core().composition.slotIds.chart"
+        [pluggable]="core().composition.slots.chart"
+        [facade]="core().facade"
+      ></ng-container>
+    </article>
+  </section>
+</section>

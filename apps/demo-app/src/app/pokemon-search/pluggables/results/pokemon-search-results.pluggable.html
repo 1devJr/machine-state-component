@@ -1,0 +1,25 @@
+<section class="results">
+  @if (viewModel().status === 'loading') {
+  <p class="results__hint">Carregando pokemons...</p>
+  } @if (viewModel().status === 'error') {
+  <p class="results__error">{{ viewModel().errorMessage }}</p>
+  } @if (viewModel().status !== 'loading' && viewModel().results.length === 0) {
+  <p class="results__hint">{{ mergedConfig().emptyMessage }}</p>
+  } @if (viewModel().results.length > 0) {
+  <ul>
+    @for (pokemon of viewModel().results; track pokemon) {
+    <li>
+      <button
+        type="button"
+        class="results__item"
+        [class.results__item--selected]="pokemon === viewModel().selectedPokemonName"
+        [attr.aria-pressed]="pokemon === viewModel().selectedPokemonName"
+        (click)="onSelect(pokemon)"
+      >
+        {{ pokemon }}
+      </button>
+    </li>
+    }
+  </ul>
+  }
+</section>
