@@ -1,6 +1,6 @@
 # Guia de Soluções — Engine (`libs/ui-state/src/lib/engine`)
 
-> Documento complementar ao `CODE_REVIEW.md`.
+> Documento complementar ao [`CODE_REVIEW.md`](./CODE_REVIEW.md).
 > Para cada problema identificado (🔴 Crítico e 🟡 Melhoria), apresentamos o **código atual**, a **solução proposta** com diff, e uma **explicação** do porquê.
 
 ---
@@ -314,7 +314,7 @@ export class EngineEffectsRuntime<TState, TStatus, TEvent, TServices> {
 ```typescript
 export interface EffectsRuntimeConfig {
   /** Callback invocado quando um efeito (sync ou async) falha. Default: console.error */
-  onEffectError?: (effectId: string, error: unknown) => void;
+  onEffectError?: (context: { effectId: string; error: unknown; eventType?: string }) => void;
 }
 
 export class EngineEffectsRuntime<
@@ -326,7 +326,7 @@ export class EngineEffectsRuntime<
   #services: TServices;
   #destroyed = false;
   readonly #pendingEffects = new Set<Promise<void>>();
-  readonly #onEffectError: (effectId: string, error: unknown) => void;
+  readonly #onEffectError: (ctx: { effectId: string; error: unknown; eventType?: string }) => void;
 
   constructor(
     private readonly effectRegistry: EffectRegistry<TState, TStatus, TEvent, TServices>,
@@ -334,8 +334,13 @@ export class EngineEffectsRuntime<
     config?: EffectsRuntimeConfig,
   ) {
     this.#services = services ?? ({} as TServices);
-    this.#onEffectError = config?.onEffectError ?? ((id, err) => {
-      console.error(`[EngineEffectsRuntime] Effect "${id}" failed`, err);
+    this.#onEffectError = config?.onEffectError ?? (({ effectId, error, eventType }) => {
+      console.error(
+        `[EngineEffectsRuntime] Effect "${effectId}" failed` +
+        (eventType ? ` (triggered by "${eventType}")` : ''),
+        error,
+      );
+    });
     });
   }
 
@@ -377,13 +382,14 @@ export class EngineEffectsRuntime<
         const result = effect.handler(state, effectEvent, context);
         if (result instanceof Promise) {
           const tracked = result
-            .catch((error) => this.#onEffectError(effect.id, error))
+            .catch((error) => this.#onEffectError({
+              effectId: effect.id, error, eventType: event.type,
+            }))
             .finally(() => this.#pendingEffects.delete(tracked));
           this.#pendingEffects.add(tracked);
         }
       } catch (error) {
-        this.#onEffectError(effect.id, error);
-      }
+        this.#onEffectError({ effectId: effect.id, error, eventType: event.type });
     }
   }
 
@@ -490,10 +496,12 @@ function createConnectionLink<
   ) as ConnectionLink<TSourceCreator, TTargetCreator>;
 }
 
-function isPayloadCompatible(source: AnyActionCreator, target: AnyActionCreator): boolean {
-  // Heurística simples: se ambos não têm payload (apenas type), são compatíveis
-  // Em produção, isso é resolvido pela type-level `PayloadCompatible<S, T>`
-  return true; // A verificação real acontece em compile-time nos tipos
+function isPayloadCompatible(_source: AnyActionCreator, _target: AnyActionCreator): boolean {
+  // A verificação real de compatibilidade de payloads acontece em compile-time
+  // via o tipo condicional `PayloadCompatible<S, T>`.
+  // Em runtime, esta função é um placeholder — o TypeScript já garantiu
+  // que o arm correto da union `ConnectionLink` foi selecionado.
+  return true;
 }
 ```
 
@@ -992,6 +1000,8 @@ function generatePluggableId(slot: string | symbol, component: Type<unknown>): s
   pluggableIdCounter += 1;
 
   // Em dev mode, usar component.name para legibilidade
+  // `ngDevMode` é uma flag global de compilação do Angular, injetada pelo compiler.
+  // Em produção, o tree-shaker remove blocos protegidos por essa flag.
   if (typeof ngDevMode !== 'undefined' && ngDevMode) {
     return `${String(slot)}-${component.name}-${pluggableIdCounter}`;
   }
@@ -1415,17 +1425,22 @@ export type EditorEvent = ReturnType<
 E atualizar `editor.types.ts`:
 
 ```typescript
-// No createEditorTransitions, usar o catálogo:
+// No createEditorTransitions, usar o catálogo diretamente:
 'editor/update': (state, event) => {
-  // Sem cast! O tipo do evento inclui `partial` nativamente.
-  const updateEvent = event as EditorEvent & { partial: Partial<TDraft> };
+  // O tipo vem do catálogo — narrowing seguro via discriminated union
+  const partial = (event as { partial?: Partial<TDraft> }).partial ?? {};
   const nextDraft = {
     ...(state.editor?.draft ?? createDefaultDraft()),
-    ...(updateEvent.partial ?? {}),
+    ...partial,
   };
   // ...
 },
 ```
+
+> **Nota:** O cast residual aqui (`as { partial?: ... }`) é necessário porque `globalTransitions`
+> usa uma union ampla. A solução ideal é tipar `globalTransitions` como um discriminated union
+> mapeado sobre os tipos do `editorActionCatalog`, eliminando até este cast. Isso requer
+> mudança na assinatura de `TransitionRegistration`.
 
 #### 📝 Explicação
 
