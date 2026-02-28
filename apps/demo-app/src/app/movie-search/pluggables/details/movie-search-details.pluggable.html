@@ -1,0 +1,24 @@
+<section class="movie-details">
+  @if (detailsStatus() === 'loading') {
+  <p class="hint">Carregando detalhes...</p>
+  } @else if (detailsErrorMessage()) {
+  <p class="error">{{ detailsErrorMessage() }}</p>
+  } @else if (details()) {
+  <article>
+    <header>
+      <h3>{{ details()!.title }}</h3>
+      <span>{{ details()!.year }}</span>
+    </header>
+
+    <p>{{ details()!.synopsis }}</p>
+
+    <div class="meta">
+      <p><strong>Nota:</strong> {{ details()!.rating }}</p>
+      <p><strong>Generos:</strong> {{ details()!.genres.join(', ') }}</p>
+      <p><strong>Elenco:</strong> {{ details()!.cast.join(', ') }}</p>
+    </div>
+  </article>
+  } @else {
+  <p class="hint">{{ mergedConfig().emptyMessage }}</p>
+  }
+</section>

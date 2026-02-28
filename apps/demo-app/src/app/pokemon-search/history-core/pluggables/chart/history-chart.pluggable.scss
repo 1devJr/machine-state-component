@@ -1,0 +1,56 @@
+.history-chart {
+  display: grid;
+  gap: 0.6rem;
+}
+
+h5 {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #1f2530;
+}
+
+.history-chart__empty {
+  margin: 0;
+  color: #4f5968;
+  font-size: 0.86rem;
+}
+
+.history-chart__bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.history-chart__bar {
+  display: grid;
+  grid-template-columns: minmax(90px, 120px) 1fr auto;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.history-chart__label {
+  text-transform: capitalize;
+  color: #2f3948;
+}
+
+.history-chart__meter {
+  position: relative;
+  height: 0.7rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e4e8ef;
+  border: 1px solid #c0c8d4;
+}
+
+.history-chart__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f7d51d 0%, #e53935 100%);
+}
+
+.history-chart__bar strong {
+  min-width: 1.8rem;
+  text-align: right;
+  color: #7b1b1d;
+}

@@ -1,0 +1,15 @@
+<section class="search-input">
+  <label>
+    Pesquisa
+    <input
+      [value]="localQuery()"
+      [placeholder]="mergedConfig().placeholder"
+      (input)="updateQuery($any($event.target).value)"
+      (keydown.enter)="submit()"
+    />
+  </label>
+
+  <button type="button" (click)="submit()">
+    {{ mergedConfig().buttonLabel }}
+  </button>
+</section>

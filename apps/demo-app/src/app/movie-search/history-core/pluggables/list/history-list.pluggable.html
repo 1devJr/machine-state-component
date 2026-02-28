@@ -1,0 +1,13 @@
+<section class="history-list">
+  <h4>{{ mergedConfig().title }}</h4>
+
+  @if (terms().length) {
+  <ol>
+    @for (term of terms(); track term) {
+    <li>{{ term }}</li>
+    }
+  </ol>
+  } @else {
+  <p class="empty">{{ mergedConfig().emptyMessage }}</p>
+  }
+</section>

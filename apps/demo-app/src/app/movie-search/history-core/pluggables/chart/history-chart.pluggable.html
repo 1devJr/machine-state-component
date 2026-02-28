@@ -1,0 +1,22 @@
+<section class="history-chart">
+  <h4>{{ mergedConfig().title }}</h4>
+
+  @if (bars().length) {
+  <ul>
+    @for (bar of bars(); track bar.term) {
+    <li>
+      <span class="label">{{ bar.term }}</span>
+      <span class="track">
+        <span
+          class="fill"
+          [style.width.%]="(bar.count / maxCount()) * 100"
+        ></span>
+      </span>
+      <span class="count">{{ bar.count }}</span>
+    </li>
+    }
+  </ul>
+  } @else {
+  <p class="empty">{{ mergedConfig().emptyMessage }}</p>
+  }
+</section>

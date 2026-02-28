@@ -1,0 +1,80 @@
+<section class="movie-core">
+  <header class="movie-core__header">
+    <div>
+      <h2>Core de Busca Plugavel (Movie Search)</h2>
+      <p>
+        Engine V3 com artifact unico, composicao tipada e child core com
+        projection slice.
+      </p>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn btn-reset" (click)="reset()">
+        Limpar
+      </button>
+      <button type="button" class="btn" (click)="openHistory()">
+        Abrir Historico
+      </button>
+    </div>
+  </header>
+
+  <div class="movie-core__badges">
+    <span>Status busca: {{ status() }}</span>
+    <span>Status detalhes: {{ selections.detailsStatus() }}</span>
+    <span>{{ historySummary() }}</span>
+  </div>
+
+  <section class="movie-core__search slot-card">
+    <div
+      [uiEngineSlot]="composition.slotIds.input"
+      [pluggable]="composition.slots.input"
+      [facade]="facade.engineFacade"
+    ></div>
+  </section>
+
+  <section class="movie-core__content">
+    <div class="slot-card slot-card--results">
+      <h3>Lista de Resultados</h3>
+      <div
+        [uiEngineSlot]="composition.slotIds.results"
+        [pluggable]="composition.slots.results"
+        [facade]="facade.engineFacade"
+      ></div>
+    </div>
+
+    <div class="slot-card slot-card--details">
+      <h3>Detalhes do Filme</h3>
+      <div
+        [uiEngineSlot]="composition.slotIds.details"
+        [pluggable]="composition.slots.details"
+        [facade]="facade.engineFacade"
+      ></div>
+    </div>
+  </section>
+
+  <footer class="movie-core__footer">
+    <span>Slices registradas: inputUi, resultsUi, detailsUi</span>
+    <span>Snapshot UI: {{ sliceSummaryText() }}</span>
+  </footer>
+</section>
+
+@if (historyModalOpen()) {
+  <button
+    type="button"
+    class="history-modal__backdrop"
+    (click)="closeHistory()"
+    aria-label="Fechar historico"
+  ></button>
+  <section
+    class="history-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Historico de buscas"
+  >
+    <header>
+      <h3>Historico (Child Core)</h3>
+      <button type="button" (click)="closeHistory()">Fechar</button>
+    </header>
+
+    <app-history-core [core]="facade.historyCore" />
+  </section>
+}

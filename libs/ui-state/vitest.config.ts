@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -10,10 +9,5 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
     },
     setupFiles: ['./src/test-setup.ts'],
-  },
-  resolve: {
-    alias: {
-      '@zardui/angular': path.resolve(__dirname, '../zard-ui/src/index.ts'),
-    },
   },
 });

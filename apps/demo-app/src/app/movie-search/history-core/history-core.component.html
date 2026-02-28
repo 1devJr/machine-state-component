@@ -1,0 +1,25 @@
+<section class="history-core">
+  <header>
+    <h3>Historico</h3>
+    <div class="meta">
+      <span>Total: {{ totalSearches() }}</span>
+      <button type="button" (click)="clear()">Limpar</button>
+    </div>
+  </header>
+
+  <div class="history-core__slots">
+    <div
+      class="slot"
+      [uiEngineSlot]="core().composition.slotIds.list"
+      [pluggable]="core().composition.slots.list"
+      [facade]="core().facade"
+    ></div>
+
+    <div
+      class="slot"
+      [uiEngineSlot]="core().composition.slotIds.chart"
+      [pluggable]="core().composition.slots.chart"
+      [facade]="core().facade"
+    ></div>
+  </div>
+</section>

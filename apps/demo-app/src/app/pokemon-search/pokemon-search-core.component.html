@@ -1,0 +1,101 @@
+<section class="search-core">
+  <header class="search-core__header">
+    <div>
+      <h2>Core de Busca Plugavel</h2>
+      <p>Busca de pokemons por nome com detalhes completos e evolucoes.</p>
+    </div>
+
+    <div class="search-core__controls">
+      <button
+        type="button"
+        class="action action--reset"
+        (click)="resetSearch()"
+      >
+        Limpar
+      </button>
+      <button
+        type="button"
+        class="action action--history"
+        (click)="openHistoryModal()"
+      >
+        Abrir Historico
+      </button>
+    </div>
+
+    <div class="search-core__meta">
+      <small>Status busca: {{ status() }}</small>
+      <small>Status detalhes: {{ selections.detailsStatus() }}</small>
+      <small>{{ querySummary() }}</small>
+      <small>{{ historyProjectionSummary() }}</small>
+      <small
+        >Ultima busca registrada:
+        {{ historyProjection()?.latestTerm ?? 'nenhuma' }}</small
+      >
+    </div>
+  </header>
+
+  <section class="search-core__input-panel">
+    <span class="screen-label">Pesquisa</span>
+    <ng-container
+      [uiEngineSlot]="composition.slotIds.input"
+      [pluggable]="composition.slots.input"
+      [facade]="facade.engineFacade"
+    ></ng-container>
+  </section>
+
+  <div class="search-core__hinge" aria-hidden="true"></div>
+
+  <section class="search-core__main">
+    <section class="search-core__list-panel">
+      <span class="screen-label">Lista de Resultados</span>
+      <ng-container
+        [uiEngineSlot]="composition.slotIds.results"
+        [pluggable]="composition.slots.results"
+        [facade]="facade.engineFacade"
+      ></ng-container>
+    </section>
+
+    <section class="search-core__details-panel">
+      <span class="screen-label">Pokedex Detail View</span>
+      <ng-container
+        [uiEngineSlot]="composition.slotIds.details"
+        [pluggable]="composition.slots.details"
+        [facade]="facade.engineFacade"
+      ></ng-container>
+    </section>
+  </section>
+
+  <footer class="search-core__footer">
+    <span>Slices registradas: input, results, details</span>
+    <span>Snapshot UI: {{ sliceSummaryText() }}</span>
+  </footer>
+
+  @if (historyModalOpen()) {
+    <section
+      class="search-core__history-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Historico de buscas"
+    >
+      <button
+        type="button"
+        class="search-core__history-backdrop"
+        aria-label="Fechar modal de historico"
+        (click)="closeHistoryModal()"
+      ></button>
+      <article class="search-core__history-content">
+        <header class="search-core__history-header">
+          <h3>Historico de Pesquisas</h3>
+          <button
+            type="button"
+            class="action action--history-close"
+            (click)="closeHistoryModal()"
+          >
+            Fechar
+          </button>
+        </header>
+        <app-history-core [core]="facade.historyCore"></app-history-core>
+      </article>
+    </section>
+  }
+</section>

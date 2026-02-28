@@ -1,0 +1,41 @@
+.history-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+h5 {
+  margin: 0;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+  color: #1f2530;
+}
+
+.history-list__empty {
+  margin: 0;
+  color: #4f5968;
+  font-size: 0.86rem;
+}
+
+.history-list__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.history-list__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid #a8b3c4;
+  border-radius: 0.55rem;
+  background: #f7fafc;
+  text-transform: capitalize;
+}
+
+.history-list__item strong {
+  color: #7b1b1d;
+}

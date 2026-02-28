@@ -1,0 +1,47 @@
+.movie-details {
+  min-height: 180px;
+  background: #fff;
+  border: 2px solid #b0b7c3;
+  border-radius: 12px;
+  padding: 0.85rem;
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.65rem;
+    margin-bottom: 0.45rem;
+
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #1a1a1a;
+    }
+
+    span {
+      color: #6f42c1;
+      font-weight: 700;
+    }
+  }
+
+  p {
+    margin: 0;
+    color: #2f2f2f;
+  }
+
+  .meta {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.75rem;
+  }
+
+  .hint {
+    color: #4f4f4f;
+    font-weight: 600;
+  }
+
+  .error {
+    color: #b00020;
+    font-weight: 700;
+  }
+}

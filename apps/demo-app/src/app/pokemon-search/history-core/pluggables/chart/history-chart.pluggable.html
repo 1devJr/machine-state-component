@@ -1,0 +1,19 @@
+<section class="history-chart">
+  <h5>{{ mergedConfig().title }}</h5>
+
+  @if (bars().length === 0) {
+  <p class="history-chart__empty">{{ mergedConfig().emptyMessage }}</p>
+  } @else {
+  <ul class="history-chart__bars">
+    @for (bar of bars(); track bar.term) {
+    <li class="history-chart__bar">
+      <span class="history-chart__label">{{ bar.term }}</span>
+      <div class="history-chart__meter">
+        <div class="history-chart__fill" [style.width.%]="bar.width"></div>
+      </div>
+      <strong>{{ bar.count }}</strong>
+    </li>
+    }
+  </ul>
+  }
+</section>

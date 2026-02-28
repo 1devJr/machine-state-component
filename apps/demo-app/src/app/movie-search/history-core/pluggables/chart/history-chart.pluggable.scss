@@ -1,0 +1,51 @@
+.history-chart {
+  h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ffe082;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: 1fr 2fr auto;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .label,
+  .count {
+    font-size: 0.8rem;
+    color: #fff7e6;
+  }
+
+  .track {
+    position: relative;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+  }
+
+  .fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #f7d51d, #e53935);
+  }
+
+  .empty {
+    margin: 0;
+    color: #ffd7cf;
+    font-size: 0.9rem;
+  }
+}

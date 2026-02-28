@@ -1,0 +1,54 @@
+.results {
+  border: 2px solid #6d7b8a;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  background: linear-gradient(180deg, #eff4fa 0%, #dee7f1 100%);
+}
+
+.results__hint {
+  color: #28313a;
+  margin: 0.25rem 0;
+  font-weight: 600;
+}
+
+.results__error {
+  color: var(--pokemon-red);
+  margin: 0.25rem 0;
+  font-weight: 700;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+}
+
+li {
+  margin: 0;
+}
+
+.results__item {
+  width: 100%;
+  text-align: left;
+  border: 2px solid #7d8c9e;
+  border-radius: 0.65rem;
+  background: var(--pokemon-white);
+  text-transform: capitalize;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  color: #1f2a35;
+  font-weight: 700;
+}
+
+.results__item:hover {
+  border-color: var(--pokemon-blue);
+  background: #f6faff;
+}
+
+.results__item--selected {
+  border-color: #8a171b;
+  background: linear-gradient(90deg, #ffede8 0%, #ffd9d5 100%);
+  color: #731114;
+}
