@@ -1,559 +1,616 @@
-# Code Review — Branch `feat/poc-structure`
+# Code Review — Engine (`libs/ui-state/src/lib/engine`)
 
-> **Revisão completa do PR que migra para a engine "artifact-first" e reconstrói os exemplos de demonstração.**
-> Branch: `feat/poc-structure` → `main`
-> Commit: `1975412` — _feat: migrate to artifact-first engine and rebuild demo examples_
+> **Revisão focada exclusivamente na engine de state management "artifact-first".**
+> Branch: `feat/poc-structure`
+> Escopo: `libs/ui-state/src/lib/engine/` (core, facade, pluggables, effects, store, registries, editor, devtools)
 
 ---
 
 ## Índice
 
-1. [Resumo Executivo](#resumo-executivo)
-2. [Pontos Positivos](#pontos-positivos)
-3. [Problemas Críticos](#problemas-críticos)
-4. [Problemas de Média Severidade](#problemas-de-média-severidade)
-5. [Problemas Menores](#problemas-menores)
-6. [Duplicação de Código](#duplicação-de-código)
-7. [Cobertura de Testes](#cobertura-de-testes)
-8. [Segurança](#segurança)
-9. [Performance](#performance)
-10. [Configuração e Tooling](#configuração-e-tooling)
-11. [Recomendações Arquiteturais](#recomendações-arquiteturais)
-12. [Resumo Final](#resumo-final)
+1. [O que está BOM ✅](#o-que-está-bom-)
+2. [O que pode MELHORAR 🟡](#o-que-pode-melhorar-)
+3. [O que está RUIM 🔴](#o-que-está-ruim-)
+4. [Resumo por Módulo](#resumo-por-módulo)
+5. [Cobertura de Testes da Engine](#cobertura-de-testes-da-engine)
+6. [Ações Prioritárias](#ações-prioritárias)
 
 ---
 
-## Resumo Executivo
+## O que está BOM ✅
 
-O PR introduz uma engine de state management baseada em "artifacts" com composição de slots/pluggables, devtools, e dois demos (movie-search e pokemon-search). A arquitetura é bem pensada e segue princípios de Clean Architecture. No entanto, há **problemas críticos de type safety**, **duplicação massiva de código** (~715 linhas duplicadas entre os demos), **inconsistências entre os dois demos**, e **gaps de cobertura de testes** que precisam ser endereçados.
+### 1. Arquitetura geral — muito bem pensada
 
-**Estatísticas:**
-- ~250 arquivos alterados
-- ~19.320 linhas adicionadas / ~4.544 removidas
-- 🔴 8 problemas críticos
-- 🟡 30+ problemas médios
-- 🟢 15+ problemas menores
+A separação de responsabilidades é clara e coerente:
 
----
+- **`core/`** — orquestração de artifacts e composição (kernel → artifact → engine)
+- **`facade/`** — API única para os consumidores interagirem com a engine
+- **`pluggables/`** — sistema de slots e composição tipada de componentes
+- **`effects/`** — efeitos colaterais desacoplados do estado
+- **`store/`** — reducer puro baseado em signals do Angular
+- **`registries/`** — registros modulares para hooks, effects, slices, transitions
+- **`editor/`** — abstração reutilizável de edição com draft/save/cancel
+- **`devtools/`** — inspector e overlay para observabilidade
 
-## Pontos Positivos
+Cada módulo tem sua pasta, seus tipos, seus exports. O `index.ts` de cada um controla a superfície pública. Isso facilita muito a manutenção.
 
-### Arquitetura
-- ✅ **Clean Architecture bem aplicada** — separação clara entre domain (types), store (kernel/transitions), effects, facade, e UI (components/pluggables)
-- ✅ **Padrão artifact-first** — boa abstração para composição de features com slots/pluggables
-- ✅ **Standalone-first** — todos os componentes são standalone, seguindo Angular 19+ best practices
-- ✅ **Lazy loading** via `loadComponent` nas rotas
-
-### Qualidade do Código
-- ✅ **OnPush + Signals** em todos os componentes (exceto devtools overlay)
-- ✅ **Transições imutáveis** — spread operator em todas as funções de transição
-- ✅ **Cleanup adequado** nos facades via `ngOnDestroy`
-- ✅ **Sistema de devtools** bem implementado com inspector, overlay e logging
-
-### Testes
-- ✅ **Testes de engine** cobrem cenários complexos (composição, facade lifecycle, editor)
-- ✅ **Testes de pluggables do Pokemon** verificam rendering e dispatch de ações
-- ✅ **Testes de transições e efeitos** cobrem happy path e error paths
-
-### Acessibilidade
-- ✅ `aria-label`, `role="dialog"`, `aria-modal` nos modais
-- ✅ `aria-label="Menu principal"` na navegação
-
----
-
-## Problemas Críticos
-
-### 🔴 1. `strict: true` ausente no `tsconfig.base.json`
-
-**Arquivo:** `tsconfig.base.json`
-
-O projeto declara "TS strict" como padrão, mas `strict: true` **não está habilitado** no `compilerOptions`. Isso significa que `noImplicitAny`, `strictNullChecks`, `strictFunctionTypes`, etc., estão todos **desligados**, minando toda a política de type safety do projeto.
-
-**Correção:** Adicionar `"strict": true` ao `compilerOptions`.
-
----
-
-### 🔴 2. Casts `as unknown as` (double casts) em código de produção
-
-**Arquivos:** `composed-engine.ts`, `slot.directive.ts`, `composition.builder.ts`, `engine.facade.ts`
-
-Múltiplos double casts via `unknown` que "mentem" para o type system:
+### 2. Reducer baseado em Signals — elegante e idiomático
 
 ```typescript
-// composed-engine.ts ~L126
-baseFacade as unknown as EngineFacade<CompositionState<…>>
+// engine.reducer.ts
+const state = signal<TState>(initialState);
 
-// slot.directive.ts ~L72
-pluggable.component as unknown as PluggableWithArtifacts<…>
-
-// engine.facade.ts ~L183
-listener(event as never)
-
-// editor.actions.ts ~L7
-{ type: 'editor/open' } as TEvent
+const dispatch = (event: TEvent) => {
+  const current = state();
+  hookRegistry.runBefore(current, event);
+  const transition = transitionRegistry.resolve(current, event);
+  const nextState = transition ? transition(current, event) : current;
+  state.set(nextState);
+  hookRegistry.runAfter(nextState, event);
+};
 ```
 
-Esses casts escondem incompatibilidades de tipo que podem causar runtime errors silenciosos.
+Usar `signal()` do Angular diretamente como store é simples, performático e totalmente integrado com o change detection. Sem overhead de bibliotecas externas como NgRx. O dispatch é síncrono e previsível.
 
-**Correção:** Criar funções de narrowing/normalização em vez de casts, ou usar assertion functions com validação runtime.
+### 3. Sistema de composição tipada (CompositionBuilder)
+
+O `TypedCompositionBuilder` é a peça mais sofisticada da engine e funciona muito bem:
+
+- **Required/optional slots com verificação em compile-time** — o `build()` só compila se todos os slots obrigatórios foram preenchidos (usando o trick do `this: never`)
+- **Schema tipado** — `defineCompositionSchema({ input: requiredSlot<Config>() })` dá autocomplete e type-check
+- **Conexão parent↔child** — `connectChild()` com links tipados entre portas de ações
+- **Projeção de estado** — estado do child é projetado como slice no parent automaticamente
+
+Exemplo do pattern de conexão:
+```typescript
+.connectChild('history', ({ parent, child, link }) => ({
+  parentToChild: [link(parent.actions.historyRecorded, child.actions.ingestSearch)],
+  childToParent: [],
+  projection: { sliceKey: 'historyProjection', initialState: {...}, select: (s) => ({...}) },
+}))
+```
+
+É type-safe, explícito e composicional. Muito bom design.
+
+### 4. Action Catalog — pattern factory limpo
+
+```typescript
+// action-catalog.ts
+const creator = ((...args) => ({ type: definition.type, ...payloadFactory(...args) }));
+Object.defineProperty(creator, 'actionType', { value: definition.type, writable: false });
+```
+
+Cada action creator carrega o `actionType` como property imutável. Isso permite que transições e efeitos façam matching por tipo sem strings mágicas soltas. O `defineActionCatalog()` produz `types` e `creators` de uma vez, mantendo tudo sincronizado.
+
+### 5. Transições imutáveis + padrão chain
+
+O `TransitionChainRuntime` permite definir transições de forma fluent:
+
+```typescript
+chainTransitions<State, Status, Actions>(actions)
+  .on('idle', actions.submit, (state) => ({ ...state, status: 'loading' }))
+  .on('loading', actions.success, (state, event) => ({ ...state, results: event.results, status: 'ready' }))
+  .globalOn(actions.reset, () => createInitialState())
+  .done()
+```
+
+Todas as transições usam spread operator — sem mutação. A distinção entre transições por status e globais é clara.
+
+### 6. Sistema de registries — desacoplado e extensível
+
+Os quatro registries (`effect`, `hook`, `slice`, `transition`) seguem o mesmo padrão:
+- Retornam uma função de cleanup quando algo é registrado
+- Permitem registro dinâmico (pluggables podem adicionar transições/efeitos em runtime)
+- São independentes entre si
+
+O `transition.registry` permite que slots de pluggables adicionem suas próprias transições ao estado existente — isso é poderoso para extensibilidade.
+
+### 7. Editor abstrato — reutilizável
+
+`createEditorTransitions()` + `EditorSlice<TDraft>` + `EditorSelections` formam um pacote completo para qualquer feature que precise de edição inline:
+- Abre draft baseado no estado atual
+- Track dirty state
+- Save aplica draft ao estado, cancel descarta
+- Transições são globais (funcionam em qualquer status)
+
+### 8. Devtools — inspector + overlay com boa observabilidade
+
+O sistema de devtools é surpreendentemente completo para uma POC:
+- **Inspector** registra hooks antes/depois de cada transição e mantém log de actions + transitions
+- **Overlay** é um componente Angular standalone com painel lateral configurável
+- **Manager** conecta facades ao inspector com snapshot de selections
+- **Estado** é reativo via signals, com truncation de histórico
+
+### 9. Testes existentes — bons cenários cobertos
+
+Os testes da engine cobrem cenários não-triviais:
+- `composed-engine.spec.ts` — composição com child, projeção de estado, e cleanup
+- `engine.facade.spec.ts` — dispatch, transitions por status, efeitos com prioridade e `when` guards
+- `composition.builder.spec.ts` — slots tipados, extensão, conexões child, e runtime enable/disable
+- `editor.types.spec.ts` — lifecycle completo open→update→save/cancel
+- `devtools.state.spec.ts` — truncation de histórico e API pública
+
+### 10. Slot Directive — lifecycle management correto
+
+A `EngineSlotDirective` gerencia corretamente:
+- Registro de slices, transições, efeitos e módulos quando um pluggable é montado
+- Cleanup de tudo quando o pluggable é desmontado ou substituído
+- Reuso do componente quando só a config muda (sem destruir/recriar)
+- Injeção de contexto (`ENGINE_PLUGGABLE_CONTEXT`) para cada pluggable
 
 ---
 
-### 🔴 3. `Signal<any>` na API pública do kernel
+## O que pode MELHORAR 🟡
 
-**Arquivo:** `core-kernel.ts` (L1)
+### 1. Hooks disparam para eventos sem transição registrada
+
+**Arquivo:** `engine.reducer.ts`
+
+```typescript
+const transition = transitionRegistry.resolve(current, event);
+const nextState = transition ? transition(current, event) : current;
+state.set(nextState);
+hookRegistry.runAfter(nextState, event); // roda SEMPRE, mesmo sem transição
+```
+
+Se nenhuma transição existe para aquele evento naquele status, o estado não muda, mas `runAfter` **é chamado mesmo assim**. Isso significa que **efeitos registrados para aquele event type vão executar** mesmo que o estado não tenha mudado. Pode ser intencional (efeitos "fire regardless"), mas é contra-intuitivo e deveria ser documentado ou ter um flag de controle.
+
+**Sugestão:** Adicionar opção `runAfterOnNoTransition: boolean` no config, ou documentar explicitamente esse comportamento.
+
+### 2. `reset()` não dispara hooks — inconsistência
+
+**Arquivo:** `engine.reducer.ts`
+
+```typescript
+reset(nextState) {
+  state.set(nextState ?? initialState); // sem runBefore/runAfter
+}
+```
+
+`dispatch()` executa `runBefore` → transição → `set` → `runAfter`. Mas `reset()` faz direto `set()`. Isso significa que mudanças via `registerSlice`, `setSliceState`, `unregisterSlice` (que usam `reset`) **não trigam efeitos**. Para o consumidor, é difícil saber quais mudanças de estado disparam efeitos e quais não.
+
+**Sugestão:** Criar `resetWithHooks()` ou documentar claramente no JSDoc do `reset()` que hooks são bypassados intencionalmente.
+
+### 3. `#buildConnectionRuntime` muito longo (~95 linhas)
+
+**Arquivo:** `composition.builder.ts`
+
+Esse método privado do `TypedCompositionBuilder` faz tudo: valida ports, cria subscriptions de links, registra slices de projeção, gerencia cleanup arrays, e expõe enable/disable/enableAll/disableAll.
+
+São muitas responsabilidades num único método. Se uma projeção falhar, o cleanup parcial precisa ser gerenciado manualmente dentro de arrays. Alta complexidade ciclomática.
+
+**Sugestão:** Extrair para uma classe `ConnectionRuntime` dedicada com lifecycle próprio.
+
+### 4. `component.name` para gerar IDs
+
+**Arquivo:** `composition.builder.ts`
+
+```typescript
+options?.id ?? `${String(slot)}-${component.name}`
+```
+
+Após minificação em build de produção, `component.name` vira `a`, `t`, etc. Se dois pluggables diferentes são montados no mesmo slot em momentos diferentes, podem gerar o mesmo ID, causando colisões silenciosas.
+
+**Sugestão:** Sempre exigir `id` explícito, ou gerar um UUID. O `component.name` pode ficar como fallback apenas em dev mode.
+
+### 5. `destroy()` do `ComposedEngineResult` incompleto
+
+**Arquivo:** `composed-engine.ts`
+
+```typescript
+const destroy = () => {
+  composition.connectionRuntime?.disableAll();
+  effectsCleanup();
+  baseFacade.destroy();
+};
+```
+
+Após `destroy()`, as referências `facade`, `actions`, `selections`, `connectionPort`, e `composition` continuam vivas no objeto retornado. Se algum consumidor mantém referência ao `ComposedEngineResult`, ele pode continuar chamando `actions.submit()` ou lendo `selections.query()` — ambos vão operar sobre um facade destruído sem aviso.
+
+**Sugestão:** Adicionar flag `#destroyed` e fazer no-op/throw em chamadas após destroy.
+
+### 6. Hook e slice registries sem isolamento de erros
+
+**Arquivo:** `hook.registry.ts`
+
+```typescript
+runAfter(state, event) {
+  for (const hook of hooks) {
+    hook.onAfterTransition?.(state, event); // se lançar exceção, para aqui
+  }
+}
+```
+
+Se um hook lança exceção, os hooks seguintes não executam. O mesmo vale para `effect.registry.ts` que faz `effects.push(...)` e `effects.splice(idx, 1)` — se `splice` é chamado durante iteração (um hook remove outro), pode pular elementos.
+
+**Sugestão:** `try/catch` individual por hook, e snapshot do array antes de iterar (`[...hooks].forEach`).
+
+### 7. Slice registry lança exceção em registro duplicado sem escape
+
+**Arquivo:** `slice.registry.ts`
+
+```typescript
+if (registrations.has(slice.key)) {
+  throw new Error(`Slice "${slice.key}" is already registered.`);
+}
+```
+
+Em cenários de HMR (Hot Module Replacement) ou re-montagem de componentes, o mesmo slice pode ser registrado duas vezes. Sem flag de idempotência, a engine crash.
+
+**Sugestão:** Permitir re-registro silencioso ou adicionar opção `{ allowReplace: true }`.
+
+### 8. `PluggableBase.state` sempre retorna `Signal<TState | undefined>`
+
+**Arquivo:** `pluggable.base.ts`
+
+```typescript
+readonly state: Signal<TState | undefined> = computed(() => this.context?.state());
+```
+
+Mesmo quando o pluggable está dentro de uma engine (tem contexto), `state()` retorna `TState | undefined`. Todo pluggable concreto precisa fazer `this.state()?.results` com optional chaining. É verbose e esconde o fato de que, dentro de um slot, o contexto **sempre** existe.
+
+**Sugestão:** Criar `assertedState(): Signal<TState>` que lança erro se contexto é null, ou usar `input.required` para o contexto.
+
+### 9. Transition registry usa modelo stack implícito
+
+**Arquivo:** `transition.registry.ts`
+
+```typescript
+register(registration) {
+  const previousTransitions = transitions;      // snapshot
+  const previousGlobalTransitions = globalTransitions;
+  // ... merge registration ...
+  return () => {
+    transitions = previousTransitions;           // restaura snapshot
+    globalTransitions = previousGlobalTransitions;
+  };
+}
+```
+
+Se registros A, B, C acontecem nessa ordem e B é removido, as transições voltam para o estado antes de B — mas C's transições são **perdidas**. É um modelo stack (LIFO) mas não está documentado. Se a ordem de cleanup não for LIFO, transições podem sumir silenciosamente.
+
+**Sugestão:** Documentar que cleanup deve ser feito em ordem LIFO, ou usar modelo de merge que remove apenas as transições registradas (não restaura snapshot).
+
+### 10. `devtools.state.ts` não verifica flag `enable`
+
+**Arquivo:** `devtools.state.ts`
+
+```typescript
+logTransition(event: TEvent, prevState: TState, nextState: TState): void {
+  const entry = createEngineLogEntry(event, prevState, nextState);
+  this.#entries.update(entries => truncateEngineHistory([...entries, entry], this.config.maxHistory));
+  logEngineTransition(entry, this.config, this.instanceName);
+}
+```
+
+O `logger` verifica `config.display`, mas `logTransition` **não verifica `config.enable`**. Mesmo com `enable: false`, o log de entradas continua sendo acumulado no signal `#entries` e o `logEngineTransition` é chamado (que no caso de `display: 'console'` vai logar no console).
+
+**Sugestão:** Adicionar `if (!this.config.enable) return;` no início de `logTransition`.
+
+### 11. Devtools overlay sem `ChangeDetectionStrategy.OnPush`
+
+**Arquivo:** `devtools-overlay.component.ts`
+
+O componente usa `signal()` e `computed()` para estado local, mas **não tem `changeDetection: ChangeDetectionStrategy.OnPush`**. Isso significa que ele re-renderiza em cada ciclo de change detection, não apenas quando inputs mudam.
+
+**Sugestão:** Adicionar `changeDetection: ChangeDetectionStrategy.OnPush` ao decorator `@Component`.
+
+### 12. `EditorActions` — dois padrões de dispatch competindo
+
+**Arquivos:** `editor.actions.ts` e `action-catalog.ts`
+
+A engine tem dois mecanismos para disparar ações:
+- **`ActionCatalog`** com `defineActionCatalog()` — produz creators tipados com `actionType`
+- **`EditorActions` class** — classe com métodos que fazem `dispatch({ type: 'editor/open' } as TEvent)`
+
+São padrões diferentes para o mesmo fim. O `EditorActions` usa casts perigosos (`as TEvent`) que bypassam type safety, enquanto o `ActionCatalog` é type-safe por design.
+
+**Sugestão:** Migrar o editor para usar `ActionCatalog` exclusivamente, eliminando a classe `EditorActions`.
+
+### 13. `JSON.parse(JSON.stringify())` para deep clone
+
+**Arquivos:** `engine.facade.ts`, `editor.types.ts`
+
+```typescript
+// facade - getStateSnapshot
+if (typeof structuredClone === 'function') {
+  return structuredClone(currentState);
+}
+return JSON.parse(JSON.stringify(currentState)) as TState;
+
+// editor - createEditorTransitions
+const baseDraft = state.config
+  ? (JSON.parse(JSON.stringify(state.config)) as TDraft)
+  : createDefaultDraft();
+```
+
+O fallback `JSON.parse(JSON.stringify())` **perde** valores `undefined`, objetos `Date`, `Map`, `Set`, funções e referências circulares silenciosamente. Na facade pelo menos tem o fallback com `structuredClone`, mas no editor não.
+
+**Sugestão:** Usar `structuredClone()` em ambos os lugares (é suportado em todos os browsers modernos e Node 17+).
+
+### 14. `updateProjection()` roda em cada evento do child
+
+**Arquivo:** `composition.builder.ts`
+
+```typescript
+cleanups.push(childPort.subscribe(() => updateProjection()));
+```
+
+A cada evento do child, `updateProjection()` recalcula a projeção e chama `parentPort.setSliceState()` que por sua vez chama `store.reset()`. Se o child dispara muitos eventos e a projeção não muda, estamos fazendo re-renders desnecessários no parent.
+
+**Sugestão:** Adicionar deep-equal check antes de `setSliceState`, ou usar `Object.is` no nível do objeto projetado.
+
+### 15. Devtools overlay — `track` expression fraca
+
+**Arquivo:** `devtools-overlay.component.ts`
+
+```html
+@for (item of section.items; track item.title + item.meta) {
+```
+
+Concatenar `title + meta` como chave de tracking é frágil. Se dois itens têm o mesmo title+meta (ex: duas ações iguais no mesmo timestamp), o Angular não consegue diferenciar e pode ter rendering incorreto.
+
+**Sugestão:** Usar `$index` ou adicionar um `id` único a cada item.
+
+---
+
+## O que está RUIM 🔴
+
+### 1. `Signal<any>` na API pública do kernel
+
+**Arquivo:** `core-kernel.ts`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-explicit-any */
-defineSelections(selections: (state: Signal<any>) => TSelections)
+
+export function defineSelections<TSelections extends Record<string, unknown>>(
+  selections: (state: Signal<any>) => TSelections,
+): (state: Signal<any>) => TSelections {
+  return selections;
+}
 ```
 
-`Signal<any>` na API pública destrói completamente a type safety das selections. Qualquer acesso a propriedade será aceito pelo compilador sem validação.
-
-**Correção:** Usar `Signal<TState>` com um generic parameter adequado.
-
----
-
-### 🔴 4. Efeitos assíncronos fire-and-forget
-
-**Arquivo:** `engine-effects.runtime.ts` (~L60)
+O `Signal<any>` destrói completamente a type safety das selections. Quando o consumidor escreve:
 
 ```typescript
-void result.catch((err) => console.error(…));
+defineSelections((state) => ({
+  query: computed(() => state().querrry), // typo — NÃO dá erro!
+}))
 ```
 
-Efeitos assíncronos são fire-and-forget. Se um efeito faz dispatch dentro de um handler async, acontece fora do contexto síncrono, causando:
-- Leituras de estado stale
-- Race conditions entre múltiplos efeitos assíncronos
-- Nenhuma forma de aguardar completude
+O compilador aceita qualquer acesso sem reclamar. Isso anula todo o trabalho de tipagem feito nos types. O `eslint-disable` no topo do arquivo confirma que é uma decisão consciente, mas é a pior trade-off possível — sacrificar safety no ponto mais usado da API.
 
-**Correção:** Implementar um `EffectErrorHandler` port ou, no mínimo, permitir que consumidores registrem error handlers.
+**Correção:** Adicionar generic parameter:
+```typescript
+export function defineSelections<TState, TSelections extends Record<string, unknown>>(
+  selections: (state: Signal<TState>) => TSelections,
+): (state: Signal<TState>) => TSelections {
+  return selections;
+}
+```
 
----
+### 2. Double casts `as unknown as` em código de produção
 
-### 🔴 5. Efeitos do movie-search sem error handling
+**Arquivos:** `composed-engine.ts`, `slot.directive.ts`, `composition.builder.ts`, `engine.facade.ts`, `editor.actions.ts`
 
-**Arquivo:** `movie-search.effects.ts`
+São 6+ ocorrências de double casts que "mentem" para o type system:
 
-Nenhum `try/catch` em nenhum handler. Compare com pokemon-search que tem tratamento de erros adequado. Se `movieApi.search()` lançar exceção, a engine inteira crash sem recuperação.
+```typescript
+// composed-engine.ts — facade com tipo errado
+const facade = baseFacade as unknown as EngineFacade<
+  CompositionState<TState, TComposition>, TStatus, EventFromActions<TActions>, TServices
+>;
+```
 
-Além disso, o `dispatch(actions.loading())` seguido de `dispatch(actions.success(results))` **no mesmo tick síncrono** significa que a UI **nunca vai renderizar o estado de loading** para buscas de filme.
+O `baseFacade` foi criado com `TState`, não com `CompositionState<TState, TComposition>`. O signal interno ainda aponta para `TState`. O cast diz ao TypeScript que é `CompositionState`, mas em runtime o signal pode não ter as propriedades de composição até os slices serem registrados. **É uma mentira ao type system.**
 
-**Correção:** Adicionar `try/catch` e tornar os efeitos assíncronos para ter um estado de loading visível.
+```typescript
+// slot.directive.ts — component cast perigoso
+const artifacts = (
+  pluggable.component as unknown as PluggableWithArtifacts<TState, TStatus, TEvent, TServices>
+).storeArtifacts;
+```
 
----
+Se o componente não tem `storeArtifacts`, o resultado é `undefined`. O cast implica que É um `PluggableWithArtifacts` quando pode não ser.
 
-### 🔴 6. `window.engineDevTools` exposto sem guard `isDevMode()`
+```typescript
+// engine.facade.ts — event cast para never
+subscribe: (listener) => this.subscribeEvents((event) => listener(event as never))
+```
+
+`as never` é o cast mais perigoso possível — qualquer tipo satisfaz `never`. O listener do child pode esperar um evento com shape específico e receber algo completamente diferente.
+
+```typescript
+// editor.actions.ts — objeto cru cast como TEvent
+this.commands.dispatch({ type: 'editor/open' } as TEvent);
+```
+
+Se `TEvent` requerer campos além de `type`, esse cast produz um evento inválido em runtime.
+
+**Correção:** Criar funções de normalização/assertion em vez de casts. Exemplo:
+```typescript
+function assertCompositionFacade<TState, TComposition>(
+  facade: EngineFacade<TState, ...>
+): asserts facade is EngineFacade<CompositionState<TState, TComposition>, ...> {
+  // Pode ser no-op em produção, mas documenta a intenção
+}
+```
+
+### 3. Efeitos assíncronos fire-and-forget
+
+**Arquivo:** `engine-effects.runtime.ts`
+
+```typescript
+const result = effect.handler(state, effectEvent, context);
+if (result instanceof Promise) {
+  void result.catch((error) => {
+    console.error(`[EngineEffectsRuntime] Effect "${effect.id}" failed`, error);
+  });
+}
+```
+
+Problemas graves:
+1. **`console.error` é o único tratamento** — o consumidor não tem como saber que um efeito falhou
+2. **Race conditions** — se dois efeitos assíncronos para o mesmo evento fazem dispatch, a ordem é indeterminada
+3. **Estado stale** — dentro do handler async, `getState()` pode retornar estado diferente do que era quando o efeito começou
+4. **Sem cancelamento** — se a engine é destruída enquanto um efeito async está rodando, o dispatch do handler vai para um facade destruído
+
+**Correção:** Implementar:
+- Um `onEffectError` callback no config da facade
+- `AbortController`/`DestroyRef` para cancelamento
+- Ou, no mínimo, guardar as Promises e expor `awaitPendingEffects()`
+
+### 4. `createConnectionLink.map` — dual-behavior perigoso
+
+**Arquivo:** `composition.builder.ts`
+
+```typescript
+return {
+  source, target, sourceType, targetType,
+  map: ((input: unknown) => {
+    if (typeof input === 'function') {
+      return new ResolvedConnectionLink(source, target, input as ...);
+    }
+    // quando input é um evento, extrai payload
+    const payload = { ...(input as Record<string, unknown>) };
+    delete payload['type'];
+    return payload;
+  }) as unknown,  // <-- double cast para unknown!
+} as unknown as ConnectionLink<...>;  // <-- outro double cast!
+```
+
+Uma única propriedade `map` tem **dois comportamentos completamente diferentes**:
+- Se recebe uma **função**, retorna um `ResolvedConnectionLink` (builder pattern)
+- Se recebe um **evento**, retorna o payload (transformer pattern)
+
+Isso requer dois `as unknown` casts para funcionar e a assinatura de tipo no `ConnectionLink` esconde essa dualidade. Para quem lê o código ou usa a API, é impossível saber qual comportamento esperar sem ler a implementação.
+
+**Correção:** Separar em métodos explícitos:
+```typescript
+interface ConnectionLink<S, T> {
+  resolved: ConnectionLinkResolved<S, T>; // quando payloads são compatíveis
+  mapWith(fn: (event: ...) => ...): ConnectionLinkResolved<S, T>; // quando precisam transformação
+}
+```
+
+### 5. `window.engineDevTools` exposto globalmente sem proteção
 
 **Arquivo:** `devtools.registry.ts`
 
 ```typescript
-setupGlobalEngineDevTools() // expõe API no window global
+const instances = new Map<string, EngineDevToolsAPI>(); // singleton de módulo
+
+export function setupGlobalEngineDevTools(): void {
+  if (typeof window === 'undefined') return;
+  const target = window as unknown as { engineDevTools?: EngineDevToolsGlobal };
+  if (!target.engineDevTools) {
+    target.engineDevTools = globalDevTools;
+  }
+}
 ```
 
-A API de devtools (incluindo `clearHistory()` e `exportHistory()`) é exposta no `window` para **qualquer script rodando na página**, incluindo scripts de terceiros e extensões de browser. Em produção, isso deveria estar protegido por `isDevMode()`.
+Dois problemas:
+1. **Segurança** — `window.engineDevTools` é acessível por qualquer script na página (XSS, extensões, third-party scripts). As funções `clearHistory()` e `exportHistory()` podem vazar dados do estado da aplicação ou manipular o estado de debug.
+2. **Singleton de módulo** — `const instances = new Map()` é um singleton no escopo do módulo. Em cenários de SSR ou testes com múltiplos `TestBed.resetTestingModule()`, essa Map persiste entre instâncias da aplicação, causando vazamento de estado.
 
-**Correção:** Adicionar guard `isDevMode()` ao `setupGlobalEngineDevTools()`.
+**Correção:**
+```typescript
+import { isDevMode } from '@angular/core';
 
----
+export function setupGlobalEngineDevTools(): void {
+  if (typeof window === 'undefined' || !isDevMode()) return;
+  // ...
+}
+```
 
-### 🔴 7. Transição `submit` ausente no pokemon-search
+E mover o `instances` Map para dentro de um Injectable Angular para respeitar o lifecycle da aplicação.
 
-**Arquivo:** `pokemon-search.transitions.ts`
+### 6. `effects.filter().sort()` em cada dispatch — O(n log n) desnecessário
 
-O movie-search tem uma transição `submit` que seta `status: 'loading'`, mas o pokemon-search **não tem**. Isso significa que, se `submit` for dispatched no pokemon sem imediatamente seguir com `loading` do efeito, o status não muda. Isso pode causar um **bug sutil de timing**.
-
-**Correção:** Adicionar transição `submit` ao pokemon-search, consistente com movie-search.
-
----
-
-### 🔴 8. `createConnectionLink.map` — API confusa com overloading perigoso
-
-**Arquivo:** `composition.builder.ts` (~L167)
-
-A propriedade `map` é overloaded: quando chamada com uma função, retorna um `ResolvedConnectionLink`; quando chamada com um evento, retorna o payload. Esse dual-behavior num único property é confuso e o tipo é `as unknown` cast duas vezes para funcionar. API muito frágil.
-
-**Correção:** Separar em dois métodos distintos (`mapWith(fn)` e `extractPayload(event)`).
-
----
-
-## Problemas de Média Severidade
-
-### 🟡 9. `composition.builder.ts` — Método `#buildConnectionRuntime` muito longo
-
-~95 linhas de lógica complexa de orquestração num único método privado. Gerencia subscriptions, projections, slices e arrays de cleanup. Alta complexidade ciclomática.
-
-**Correção:** Extrair para uma classe `ConnectionRuntime` dedicada.
-
----
-
-### 🟡 10. `component.name` em IDs de composição
-
-**Arquivo:** `composition.builder.ts` (~L49)
+**Arquivo:** `engine-effects.runtime.ts`
 
 ```typescript
-options?.id ?? `${slot}-${component.name}`
+execute(state, event, dispatch, getState): void {
+  const effects = this.effectRegistry
+    .listByEvent(event.type)
+    .filter(effect => !effect.when || effect.when(state, effectEvent))
+    .sort((a, b) => (a.priority ?? 50) - (b.priority ?? 50));
+  // ...
+}
 ```
 
-`component.name` é **unreliable após minificação**. Builds de produção podem gerar `a`, `t`, etc., causando colisões de ID.
+A cada `dispatch`, a engine:
+1. Filtra efeitos por event type — O(n)
+2. Filtra por `when` guard — O(n)
+3. Ordena por prioridade — O(n log n)
 
-**Correção:** Sempre exigir `id` explícito ou usar um UUID generator.
+Para uma aplicação com muitos efeitos registrados e dispatches frequentes, isso é trabalho desnecessário. A lista de efeitos por event type raramente muda (só quando pluggables são montados/desmontados).
 
----
-
-### 🟡 11. Hooks disparam para eventos sem transição registrada
-
-**Arquivo:** `engine.reducer.ts` (~L25)
-
-Se `transitionRegistry.resolve` retorna `undefined`, o estado não muda mas `runAfter` **ainda é chamado**. Hooks/efeitos executam para eventos sem handler — pode ser surpreendente.
-
-**Correção:** Só executar `runAfter` se houve transição efetiva.
+**Correção:** Pré-indexar efeitos por event type no registro (Map<eventType, effect[]>), e pré-ordenar por prioridade no momento do registro.
 
 ---
 
-### 🟡 12. `reset()` bypassa hooks
+## Resumo por Módulo
 
-**Arquivo:** `engine.reducer.ts` (~L36)
-
-`reset(nextState)` chama `state.set(…)` diretamente sem executar hooks. Inconsistência — algumas mudanças de estado disparam hooks, outras não.
-
-**Correção:** Documentar explicitamente o contrato ou criar um `resetWithHooks()`.
-
----
-
-### 🟡 13. `destroy()` incompleto
-
-**Arquivo:** `composed-engine.ts` (~L150)
-
-`destroy()` chama `baseFacade.destroy()` mas não anula `composition`, `selections` ou `connectionPort`, deixando referências stale que podem causar memory leaks.
-
-**Correção:** Anular todas as referências e adicionar flag `#destroyed` para no-op em chamadas subsequentes.
+| Módulo | Veredicto | Destaques |
+|--------|-----------|-----------|
+| **core/** | ⭐⭐⭐⭐ Bom | Boa orquestração, mas double casts no `composed-engine.ts` e `Signal<any>` no kernel |
+| **facade/** | ⭐⭐⭐ Razoável | API completa, mas `event as never` no connection port, `reset` sem hooks, destroy incompleto |
+| **pluggables/** | ⭐⭐⭐⭐ Muito bom | CompositionBuilder é excelente, mas `map` dual-behavior e `#buildConnectionRuntime` longo |
+| **effects/** | ⭐⭐ Fraco | Fire-and-forget sem error handling, sort por dispatch, sem cancelamento |
+| **store/** | ⭐⭐⭐⭐⭐ Excelente | `createEngineStore` é simples, correto e elegante. `ActionCatalog` limpo |
+| **registries/** | ⭐⭐⭐ Razoável | Sem error isolation em hooks, model stack implícito em transitions, throw em duplicatas |
+| **editor/** | ⭐⭐⭐ Razoável | Conceito bom, mas `EditorActions` compete com `ActionCatalog`, casts `as TEvent` perigosos |
+| **devtools/** | ⭐⭐⭐⭐ Bom | Feature completa, mas `window` exposto, overlay sem OnPush, `enable` flag não verificado |
 
 ---
 
-### 🟡 14. Hook registry sem isolamento de erros
+## Cobertura de Testes da Engine
 
-**Arquivo:** `hook.registry.ts` (~L17)
+### Com testes ✅
+| Arquivo | Testes | Qualidade |
+|---------|--------|-----------|
+| `composed-engine.ts` | 2 testes (composição + erro de slice duplicado) | Boa — cobre happy path e error path |
+| `engine.facade.ts` | 2 testes extensos (dispatch/transitions, slices/effects com prioridade) | Muito boa — cenários complexos |
+| `composition.builder.ts` | 4 testes (slots, extensão, child connections, runtime enable/disable) | Muito boa |
+| `editor.types.ts` | 2 testes (open→update→save, open→update→cancel) | Boa — lifecycle completo |
+| `devtools.state.ts` | 2 testes (truncation + API pública) | Razoável |
 
-`runBefore` e `runAfter` iteram hooks sem `try/catch`. Um hook que lança exceção impede hooks subsequentes de executar.
+### Sem testes ❌
+| Arquivo | Risco | Motivo |
+|---------|-------|--------|
+| **`slot.directive.ts`** | 🔴 Alto | Lógica complexa de lifecycle (registra slices, transitions, effects, cleanup) — é o ponto de integração mais crítico |
+| **`engine-effects.runtime.ts`** | 🔴 Alto | Comportamento async, error handling, prioridade — precisa de testes com Promises |
+| **`hook.registry.ts`** | 🟡 Médio | Mutation during iteration, error propagation |
+| **`transition.registry.ts`** | 🟡 Médio | Stack-based unregister, merge behavior |
+| **`pluggable.base.ts`** | 🟡 Médio | Context null handling, mergedConfig shallow merge |
+| **`devtools-inspector.ts`** | 🟡 Médio | Hook attachment, log truncation, render payload |
+| **`devtools-overlay.component.ts`** | 🟢 Baixo | Componente de UI, menos crítico |
+| **`devtools-overlay.service.ts`** | 🟡 Médio | Dynamic component creation, SSR guard |
 
-**Correção:** Wrappear cada hook em `try/catch`.
-
----
-
-### 🟡 15. Slice registry lança exceção em registros duplicados
-
-**Arquivo:** `slice.registry.ts` (~L10), `engine.facade.ts` (~L142)
-
-`throw new Error(…)` sem recuperação graciosa. Se um componente pluggable é montado duas vezes (ex: durante HMR), isso crasheia.
-
-**Correção:** Permitir re-registro idempotente ou adicionar flag para HMR.
-
----
-
-### 🟡 16. `PluggableBase.state` retorna `Signal<TState | undefined>`
-
-**Arquivo:** `pluggable.base.ts` (~L39)
-
-Mesmo quando um context existe, `state` retorna `TState | undefined` por causa do optional chaining. Consumidores devem sempre fazer null-check, mesmo sabendo que estão dentro de uma engine.
-
-**Correção:** Criar um `assertContext()` ou usar `required` input para contexto obrigatório.
-
----
-
-### 🟡 17. Facade expõe `historyCore` publicamente
-
-**Arquivo:** `movie-search-facade.service.ts`, `pokemon-search-facade.service.ts`
-
-`facade.historyCore` é um campo `public readonly` que expõe implementação interna. O template passa `facade.historyCore` diretamente.
-
-**Correção:** Expor apenas o necessário (`historyState`, `historyClear()`), não o child core raw.
+### Gaps nos testes existentes
+- `engine.facade.spec.ts` — não testa `unregisterSlice`, nem `dispatchMany([])` vazio, nem efeito que lança exceção
+- `composition.builder.spec.ts` — não testa `optionalSlot` não preenchido, nem `connectChild` sem `withChildCore` prévio
+- `devtools.state.spec.ts` — não testa `enable: false` config
 
 ---
 
-### 🟡 18. Mock service com `providedIn: 'root'`
-
-**Arquivo:** `movie-search.mock.service.ts`
-
-Um mock service registrado como singleton no root. Não pode ser tree-shaken quando um service real é usado.
-
-**Correção:** Usar injection token com factory, ou prover no nível de componente/rota.
-
----
-
-### 🟡 19. Contratos de serviço inconsistentes (sync vs async)
-
-**Arquivo:** `movie-search.mock.service.ts` vs `pokemon-search-api.service.ts`
-
-Movie retorna `string[]` sincronamente; Pokemon retorna `Observable<string[]>`. Os dois demos supostamente mostram a mesma arquitetura, mas com contratos incompatíveis.
-
-**Correção:** Padronizar para `Observable` ou `Promise` em ambos.
-
----
-
-### 🟡 20. Devtools overlay sem `ChangeDetectionStrategy.OnPush`
-
-**Arquivo:** `devtools-overlay.component.ts`
-
-O projeto exige OnPush em todos os componentes, mas o overlay não tem.
-
-**Correção:** Adicionar `changeDetection: ChangeDetectionStrategy.OnPush`.
-
----
-
-### 🟡 21. Transition registry — modelo stack sem documentação
-
-**Arquivo:** `transition.registry.ts` (~L23-41)
-
-O `register` captura `previousTransitions` no momento do registro. Múltiplos registros criam um stack implícito. `unregister` restaura para o snapshot anterior, potencialmente perdendo transições de registros posteriores.
-
-**Correção:** Documentar o modelo stack ou usar um modelo de merge explícito.
-
----
-
-### 🟡 22. `devtools.state.ts` não verifica flag `enable`
-
-**Arquivo:** `devtools.state.ts`
-
-`logTransition` não verifica `this.config.enable`. Transições são logadas mesmo com `enable: false`.
-
-**Correção:** Adicionar guard `if (!this.config.enable) return;` no início de `logTransition`.
-
----
-
-### 🟡 23. `ts-jest@^29` com `jest@^30` — risco de incompatibilidade
-
-**Arquivo:** `package.json`
-
-`ts-jest` v29 pode não suportar totalmente Jest v30.
-
-**Correção:** Verificar compatibilidade e alinhar versões.
-
----
-
-### 🟡 24. Double dispatch de `queryChanged` no input pluggable
-
-**Arquivo:** `movie-search-input.pluggable.ts` (~L29-32)
-
-```typescript
-// submit() dispara queryChanged E submit
-this.dispatch(movieSearchActions.queryChanged(query));
-this.dispatch(movieSearchActions.submit());
-```
-
-`queryChanged` já é dispatched no `updateQuery()` a cada keystroke. No `submit()`, é disparado novamente — dispatch duplicado desnecessário.
-
-**Correção:** `submit()` deve disparar apenas `submit()`.
-
----
-
-## Problemas Menores
-
-### 🟢 25. Naming inconsistente
-
-- Root component: `App` em vez de `AppComponent` (convenção Angular)
-- History component: `clear()` (movie) vs `clearHistory()` (pokemon)
-- `MAX_RECENT_TERMS`: 10 (movie) vs 12 (pokemon), sem razão documentada
-
-### 🟢 26. `GenericRecord` vs `Record<string, unknown>`
-
-**Arquivo:** `pluggable.types.ts`
-
-Definido mas usado inconsistentemente. Às vezes `Record<string, unknown>` aparece diretamente.
-
-### 🟢 27. Identity functions no kernel
-
-**Arquivo:** `core-kernel.ts`
-
-`defineStore`, `defineSelections`, `defineServices` são pure identity functions com overhead runtime zero. Existem apenas para type inference. Considerar `satisfies` ou branded types.
-
-### 🟢 28. `emitDecoratorMetadata` e `experimentalDecorators` no tsconfig
-
-**Arquivo:** `tsconfig.base.json`
-
-Angular 21 não requer essas opções para standalone components com o novo compiler. São settings legados.
-
-### 🟢 29. `target: "es2015"` conservador demais
-
-**Arquivo:** `tsconfig.base.json`
-
-Para Angular 21+, `"target": "ES2022"` é recomendado. O lib já é `es2020`.
-
-### 🟢 30. `@angular-devkit/build-angular` em `dependencies`
-
-**Arquivo:** `package.json`
-
-Ferramenta de build deveria estar em `devDependencies`.
-
----
-
-## Duplicação de Código
-
-> **Estimativa total: ~715 linhas duplicadas entre movie-search e pokemon-search**
-
-| Unidade Duplicada | Arquivos Envolvidos | Linhas (~) |
-|---|---|---|
-| **History Core (feature inteira)** | 13 arquivos × 2 cópias | ~400 |
-| Artifact factory | `movie-search.artifact.ts` ↔ `pokemon-search.artifact.ts` | ~80 |
-| Transitions | `movie-search.transitions.ts` ↔ `pokemon-search.transitions.ts` | ~60 |
-| Actions catalog | `movie-search.actions.ts` ↔ `pokemon-search.actions.ts` | ~40 |
-| Kernel | `movie-search.kernel.ts` ↔ `pokemon-search.kernel.ts` | ~25 |
-| Selections | `movie-search.selections.ts` ↔ `pokemon-search.selections.ts` | ~15 |
-| Types (shape estrutural) | `movie-search.types.ts` ↔ `pokemon-search.types.ts` | ~40 |
-| Facade service | ambos facade services | ~25 |
-| Core component (sliceSummary/modal) | ambos core components | ~30 |
-
-### Recomendações:
-1. **Extrair `history-core/` para lib compartilhada** — a duplicação mais crítica
-2. **Criar factory genérica `createSearchArtifact<TState, TServices>()`**
-3. **Criar `createSearchKernel<TState, TServices>()` genérico**
-4. **Unificar `SearchFacadeService` base abstrata**
-
----
-
-## Cobertura de Testes
-
-### Arquivos com Testes ✅
-| Arquivo | Testes |
-|---|---|
-| `composed-engine.ts` | 2 testes (happy path + duplicate key error) |
-| `engine.facade.ts` | 2 testes extensos (dispatch/transitions + slices/effects) |
-| `composition.builder.ts` | 4 testes (slots, extension, child, runtime) |
-| `editor.types.ts` | 2 testes (save + cancel lifecycle) |
-| `devtools.state.ts` | 2 testes (history truncation + public API) |
-| Pokemon search effects | 5 testes |
-| Pokemon search transitions | 2 testes |
-| Pokemon search pluggables | 6 testes (details/input/results) |
-| Pokemon search facade | 3 testes |
-
-### Arquivos SEM Testes ❌
-| Arquivo/Área | Risco |
-|---|---|
-| `slot.directive.ts` | Alto — lógica complexa de lifecycle |
-| `engine-effects.runtime.ts` | Alto — async error handling |
-| `hook.registry.ts` | Médio — mutation during iteration |
-| `transition.registry.ts` | Médio — stack-based unregister |
-| `pluggable.base.ts` | Médio — context null handling |
-| **Todos os arquivos movie-search** | Alto — zero testes |
-| `devtools-inspector.ts` | Médio |
-| `devtools-overlay.component.ts` | Médio |
-| `devtools-overlay.service.ts` | Médio |
-| `pokemon-search-api.service.ts` | Médio — cache/mapping logic |
-
-### Gaps nos Testes Existentes
-- `pokemon-search.effects.spec.ts`: Efeitos buscados por string ID sem `expect(effect).toBeDefined()` — se o ID mudar, o teste passa silenciosamente
-- `pokemon-search.transitions.spec.ts`: Usa `as never` casts que suprimem verificação de tipos
-- Nenhum teste para estados de `error` nas transições do pokemon
-- Nenhum teste para `detailsError` no pokemon
-- Nenhum teste para estado de `loading` nos pluggables do pokemon
-
----
-
-## Segurança
-
-| Severidade | Issue | Arquivo |
-|---|---|---|
-| 🔴 Alta | `window.engineDevTools` exposto globalmente sem `isDevMode()` guard | `devtools.registry.ts` |
-| 🟡 Média | Console logging de estado completo em produção | `devtools.logger.ts` |
-| 🟡 Média | `document.body.appendChild` sem guard SSR (null check) | `devtools-overlay.service.ts` |
-| 🟡 Média | `JSON.parse(JSON.stringify())` fallback perde dados não-JSON-serializáveis | `engine.facade.ts`, `editor.types.ts` |
-| 🟢 Baixa | `crypto.randomUUID()` fallback com `Date.now()-Math.random()` é previsível | `devtools.utils.ts` |
-
----
-
-## Performance
-
-| Severidade | Issue | Arquivo |
-|---|---|---|
-| 🟡 Média | Todo `dispatch` cria novo objeto de estado via `sliceRegistry.apply` + `store.reset` mesmo sem mudanças pendentes | `engine.facade.ts` |
-| 🟡 Média | `effects.filter(...).sort(...)` roda O(n log n) em cada evento dispatched | `engine-effects.runtime.ts` |
-| 🟡 Média | `updateProjection()` roda em cada evento do child, mesmo se estado projetado não mudou | `composition.builder.ts` |
-| 🟡 Média | `#renderPayload()` em devtools cria novos arrays/objetos a cada transição | `devtools-inspector.ts` |
-| 🟢 Baixa | `{{ sliceSummaryText() }}` chama `JSON.stringify` em cada change detection cycle — código debug que não deveria ir para produção | `movie-search-core.component.html` |
-| 🟢 Baixa | Concatenação de strings para `track` em `@for` loop do overlay — estratégia de identidade fraca | `devtools-overlay.component.ts` |
-
----
-
-## Configuração e Tooling
-
-| Issue | Arquivo | Severidade |
-|---|---|---|
-| `strict: true` ausente | `tsconfig.base.json` | 🔴 |
-| `ts-jest@^29` com `jest@^30` | `package.json` | 🟡 |
-| Sem cache Vitest no `targetDefaults` | `nx.json` | 🟡 |
-| `@angular-devkit/build-angular` em dependencies | `package.json` | 🟢 |
-| `NX_DAEMON=false` em todos os scripts | `package.json` | 🟢 |
-| `target: "es2015"` conservador | `tsconfig.base.json` | 🟢 |
-| Settings legados de decorators | `tsconfig.base.json` | 🟢 |
-| Mixed test runners (Jest + Vitest) | `package.json` | 🟡 |
-| `plugins: []` vazio | `nx.json` | 🟢 |
-
----
-
-## Recomendações Arquiteturais
-
-### 1. Eliminar double casts `as unknown as`
-São "mentiras" para o type system. O tipo de estado do facade (`CompositionState`) nunca é realmente mantido pelo signal. Considere um signal de projeção tipado ou um wrapper tipado.
-
-### 2. Normalizar `CoreTransitions` antes do uso
-`composed-engine.ts` faz cast da union para um arm. Adicionar uma função `normalizeCoreTransitions()` que lida com ambos `CoreTransitionDefinition` e `TransitionRegistration`.
-
-### 3. Extrair classe `ConnectionRuntime`
-O método `#buildConnectionRuntime` no `TypedCompositionBuilder` tem ~95 linhas de gerenciamento complexo de subscriptions. Deveria ser sua própria classe com lifecycle management adequado.
-
-### 4. Estratégia para efeitos assíncronos
-Fire-and-forget promises com `console.error` é insuficiente. Considere um `EffectErrorHandler` port, ou no mínimo permitir registro de error handlers.
-
-### 5. Remover `any` de APIs públicas
-`defineSelections` no `core-kernel.ts` usa `Signal<any>`. Deve ser `Signal<TState>` com generic parameter.
-
-### 6. Unificar dispatch de editor
-`EditorActions` class e `ActionCatalog` creators são dois padrões competindo. Consolidar em um.
-
-### 7. Adicionar guards de cleanup
-`destroy()` em facades e engines deveria setar um flag `#destroyed` e throw/no-op em chamadas subsequentes a `dispatch`, `registerEffects`, etc.
-
-### 8. Extrair shared library para history-core
-A duplicação mais significativa do codebase. Um `libs/shared-history/` parametrizado por labels de i18n eliminaria ~400 linhas duplicadas.
-
----
-
-## Resumo Final
-
-### O que foi verificado:
-- ✅ **Engine core** (composed-engine, core-artifact, core-kernel, facade-bindings) — 6 arquivos
-- ✅ **Facade** (engine.facade) — 1 arquivo
-- ✅ **Pluggables** (composition.builder, pluggable.base, pluggable.types, slot.directive) — 4 arquivos
-- ✅ **Store** (action-catalog, engine.reducer, engine.types) — 3 arquivos
-- ✅ **Effects** (define-effects, engine-effects.runtime) — 2 arquivos
-- ✅ **Registries** (effect, hook, slice, transition) — 4 arquivos
-- ✅ **Editor** (editor.types, editor.actions, editor.selections) — 3 arquivos
-- ✅ **Devtools** (inspector, overlay component/service, manager, state, registry, logger, utils, types) — 10 arquivos
-- ✅ **Demo Movie Search** (artifact, actions, transitions, effects, kernel, types, selections, core component, facade, mock service, 3 pluggables, history-core) — 15+ arquivos
-- ✅ **Demo Pokemon Search** (artifact, actions, transitions, effects, kernel, types, selections, core component, facade, API service, 3 pluggables, history-core) — 15+ arquivos
-- ✅ **Testes** — 12 arquivos de spec
-- ✅ **Configuração** (package.json, nx.json, tsconfig.base.json, project.json) — 5 arquivos
-- ✅ **Tipos** (todos os `.types.d.ts` na pasta types/) — 12 arquivos
-
-### Veredicto:
-
-| Aspecto | Avaliação |
-|---|---|
-| **Arquitetura geral** | ⭐⭐⭐⭐ Muito boa — Clean Architecture bem aplicada |
-| **Type safety** | ⭐⭐ Precisa melhorar — `any`, double casts, `strict: false` |
-| **Duplicação** | ⭐⭐ Precisa melhorar — ~715 linhas duplicadas |
-| **Testes** | ⭐⭐⭐ Razoável — engine bem testada, demo parcialmente |
-| **Segurança** | ⭐⭐⭐ Razoável — devtools exposto globalmente é o principal risco |
-| **Performance** | ⭐⭐⭐⭐ Boa — OnPush/Signals/lazy loading, poucos problemas pontuais |
-| **Documentação** | ⭐⭐⭐⭐ Boa — READMEs e docs na pasta engine/docs |
-| **Consistência** | ⭐⭐ Precisa melhorar — movie vs pokemon com contratos diferentes |
-
-### Ações prioritárias (por ordem de impacto):
-1. 🔴 Habilitar `strict: true` no `tsconfig.base.json`
-2. 🔴 Adicionar `isDevMode()` guard no `setupGlobalEngineDevTools()`
-3. 🔴 Adicionar error handling nos efeitos do movie-search
-4. 🔴 Eliminar `Signal<any>` no `core-kernel.ts`
-5. 🟡 Extrair `history-core` para lib compartilhada (eliminar ~400 linhas duplicadas)
-6. 🟡 Padronizar contratos de serviço (sync vs async)
-7. 🟡 Adicionar testes para `slot.directive.ts` e `engine-effects.runtime.ts`
-8. 🟡 Adicionar transição `submit` no pokemon-search
+## Ações Prioritárias
+
+Por ordem de impacto e facilidade de correção:
+
+| # | Ação | Severidade | Esforço |
+|---|------|------------|---------|
+| 1 | Substituir `Signal<any>` por `Signal<TState>` em `defineSelections` | 🔴 Crítico | Baixo |
+| 2 | Adicionar `isDevMode()` guard em `setupGlobalEngineDevTools` | 🔴 Crítico | Mínimo |
+| 3 | Adicionar error handler customizável ao `EngineEffectsRuntime` | 🔴 Crítico | Médio |
+| 4 | Separar dual-behavior do `createConnectionLink.map` em métodos distintos | 🔴 Crítico | Médio |
+| 5 | Usar `structuredClone()` em vez de `JSON.parse(JSON.stringify())` no editor | 🟡 Médio | Mínimo |
+| 6 | Adicionar `try/catch` individual em `hook.registry.runBefore/runAfter` | 🟡 Médio | Baixo |
+| 7 | Documentar/resolver o modelo stack do `transition.registry` | 🟡 Médio | Baixo |
+| 8 | Adicionar `ChangeDetectionStrategy.OnPush` no devtools overlay | 🟡 Médio | Mínimo |
+| 9 | Verificar `config.enable` em `devtools.state.logTransition` | 🟡 Médio | Mínimo |
+| 10 | Pré-indexar efeitos por event type para evitar sort por dispatch | 🟡 Médio | Médio |
+| 11 | Adicionar testes para `slot.directive.ts` e `engine-effects.runtime.ts` | 🟡 Médio | Médio |
+| 12 | Extrair `#buildConnectionRuntime` para classe `ConnectionRuntime` | 🟡 Médio | Médio |
+| 13 | Eliminar double casts `as unknown as` com assertion functions | 🔴 Crítico | Alto |
