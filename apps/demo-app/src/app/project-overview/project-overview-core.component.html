@@ -1,0 +1,25 @@
+<article class="core-example">
+  <header class="core-example__header">
+    <div>
+      <h2>Project Overview Core</h2>
+      <p>
+        O mesmo pluggable de acao primaria aparece aqui, mas o core o liga a uma
+        action de navegacao.
+      </p>
+    </div>
+  </header>
+
+  <section class="core-example__panel">
+    <div
+      [uiEngineSlot]="composition.slotIds.primaryAction"
+      [pluggable]="composition.slots.primaryAction"
+      [facade]="engineFacade"
+    ></div>
+  </section>
+
+  @if (lastNavigationTarget()) {
+    <section class="core-example__notice">
+      Ultimo destino: {{ lastNavigationTarget() }}
+    </section>
+  }
+</article>

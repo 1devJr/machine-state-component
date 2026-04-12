@@ -1,0 +1,186 @@
+import { MyCoreAdvancedFeatureCard, MyCoreFileRuleCard } from './my-core.types';
+
+export const myCoreFileRules: MyCoreFileRuleCard[] = [
+  {
+    id: 'actions',
+    fileName: 'actions.ts',
+    title: 'Typed action catalog',
+    purpose:
+      'Declare the events the core understands and make them discoverable through IntelliSense.',
+    belongs: [
+      'Action names and payload creators.',
+      'The smallest public API for starting a behavior.',
+      'Names that the rest of the core will reference.',
+    ],
+    avoid: [
+      'Business rules.',
+      'Direct state writes.',
+      'Async calls or navigation.',
+    ],
+    symbols: [
+      'setLearningMode',
+      'runDemoAction',
+      'simulateError',
+      'toggleScratchSlice',
+      'toggleLang',
+      'reset',
+    ],
+    testIdeas: [
+      'Ensure payload shape is correct.',
+      'Check action types stay stable.',
+    ],
+  },
+  {
+    id: 'transitions',
+    fileName: 'transitions.ts',
+    title: 'Transitions own state writes',
+    purpose:
+      'Centralize every state mutation behind explicit transitions so the flow stays readable.',
+    belongs: [
+      'Status changes.',
+      'Flags like learningMode, showRawRuntimeData and childDemoVisible.',
+      'Derived metadata such as lastTransitionLabel and lastChangedFields.',
+    ],
+    avoid: [
+      'HTTP calls and timers.',
+      'Calling the router.',
+      'Cross-component imperative work.',
+    ],
+    symbols: [
+      'setLearningMode',
+      'runDemoAction',
+      'demoCompleted',
+      'simulateError',
+      'toggleRawRuntimeData',
+      'toggleChildDemo',
+      'reset',
+    ],
+    testIdeas: [
+      'Assert exact state evolution for each action.',
+      'Verify reset keeps the active language but resets the rest.',
+    ],
+  },
+  {
+    id: 'effects',
+    fileName: 'effects.ts',
+    title: 'Effects isolate side effects',
+    purpose:
+      'Handle async work and runtime orchestration without mutating state directly.',
+    belongs: [
+      'Async demo completion.',
+      'Error message enrichment.',
+      'Runtime bridge for scratch slices.',
+    ],
+    avoid: [
+      'Direct state mutation.',
+      'UI-only decisions that belong in the component.',
+      'Duplicating transition logic.',
+    ],
+    symbols: [
+      'my-core-run-demo-effect',
+      'my-core-simulate-error-effect',
+      'my-core-scratch-slice-effect',
+    ],
+    testIdeas: [
+      'Mock services and assert follow-up dispatches.',
+      'Verify runtime bridge calls happen only from effects.',
+    ],
+  },
+  {
+    id: 'selections',
+    fileName: 'selections.ts + artifact.ts',
+    title: 'Selections are read models',
+    purpose:
+      'Expose read-only values for the UI and separate kernel-only reads from composed reads.',
+    belongs: [
+      'Kernel selections for status, learningMode and action counters.',
+      'Composed selections for mounted slices and child projections.',
+      'Formatting values for the runtime panel.',
+    ],
+    avoid: [
+      'State writes.',
+      'Async behavior.',
+      'Hiding important composition reads without explaining they live in the artifact.',
+    ],
+    symbols: [
+      'currentStatus',
+      'lastActionType',
+      'actionCountEntries',
+      'learningMode',
+      'showRawRuntimeData',
+    ],
+    composedSymbols: [
+      'registeredSliceKeys',
+      'hasChildProjection',
+      'childProjectionSummary',
+    ],
+    testIdeas: [
+      'Treat them as deterministic pure read models.',
+      'Test kernel and composed selections separately.',
+    ],
+    note: 'This example teaches an important rule: kernel selections stay in selections.ts, while composed selections that depend on slot slices or projection slices live in the artifact.',
+  },
+];
+
+export const myCoreAdvancedFeatures: MyCoreAdvancedFeatureCard[] = [
+  {
+    id: 'slices',
+    title: 'Dynamic slices',
+    summary:
+      'Slot slices and runtime slices let the parent compose state gradually instead of owning every field up front.',
+    bullets: [
+      'controls, diagnostics and docs mount their own slot slices.',
+      'scratchpad is mounted and unmounted by a runtime bridge.',
+      'The runtime panel shows mounted slices so the developer sees composition happening live.',
+    ],
+    codeExample:
+      "withSlot('controls', ControlsPluggableComponent, config, { sliceInitialState: ... })",
+  },
+  {
+    id: 'child-core',
+    title: 'Child core + projection slice',
+    summary:
+      'A child core keeps its own isolated state and only shares a reduced projection back to the parent.',
+    bullets: [
+      'The parent links runDemoAction to the child action recordParentEvent.',
+      'The child updates its own internal state.',
+      'The parent only reads childDemoProjection, never the full child state.',
+    ],
+    codeExample:
+      "withChildCore('childDemo', childDemo.connectionPort).connectChild('childDemo', ...)",
+  },
+  {
+    id: 'devtools',
+    title: 'Engine Devtools',
+    summary:
+      'The Devtools overlay is the runtime microscope for effects, actions, transitions, selections and store snapshots.',
+    bullets: [
+      'Use it when the runtime panel summary is not enough.',
+      'The overlay shows the real engine behavior, not a duplicated teaching widget.',
+      'This keeps the core documentation simple while still proving the tooling exists.',
+    ],
+    note: 'Open the overlay from the header to inspect the same flow with a deeper runtime view.',
+  },
+  {
+    id: 'reuse',
+    title: 'Pluggable reuse across cores',
+    summary:
+      'The same PrimaryActionButtonPluggable is used in two different cores, but each core wires a different action.',
+    bullets: [
+      'Task Board uses it to open a local modal.',
+      'Project Overview uses it to redirect to a task creation route.',
+      'The UI component stays the same; only the action wiring changes.',
+    ],
+    links: [
+      {
+        label: 'Open Task Board example',
+        to: '/task-board',
+      },
+      {
+        label: 'Open Project Overview example',
+        to: '/project-overview',
+      },
+    ],
+    note: 'This is the practical rule: pluggables should stay thin and reusable, while the core decides orchestration.',
+  },
+];

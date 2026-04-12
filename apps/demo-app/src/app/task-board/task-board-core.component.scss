@@ -1,0 +1,46 @@
+:host {
+  display: block;
+}
+
+.core-example {
+  display: grid;
+  gap: 1rem;
+}
+
+.core-example__header,
+.core-example__panel,
+.core-example__modal {
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.core-example__header h2,
+.core-example__header p,
+.core-example__modal h3,
+.core-example__modal p {
+  margin: 0;
+}
+
+.core-example__header p,
+.core-example__modal p {
+  margin-top: 0.35rem;
+  color: #4b5563;
+  line-height: 1.55;
+}
+
+.core-example__modal {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.core-example__modal button {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.8rem;
+  cursor: pointer;
+}
