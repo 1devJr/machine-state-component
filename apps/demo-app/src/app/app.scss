@@ -1,56 +1,69 @@
-.app-empty {
+.app-shell {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
   min-height: 100vh;
-  padding: 2rem 1rem 3rem;
+  padding: 1.5rem 0 2.5rem;
   display: grid;
   align-content: start;
-  justify-items: stretch;
+  gap: 1.5rem;
+}
+
+.app-shell__header {
+  display: grid;
   gap: 1rem;
-  text-align: left;
-  color: #fff;
 }
 
-.app-empty h1 {
-  width: min(1100px, 100%);
-  margin: 0 auto;
-  font-size: clamp(1.55rem, 2.8vw, 2.05rem);
-  font-family: 'Space Grotesk', sans-serif;
-  letter-spacing: 0.02em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+.app-shell__title {
+  display: grid;
+  gap: 0.35rem;
 }
 
-.app-menu {
-  width: min(1100px, 100%);
-  margin: 0 auto;
-  display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+.app-shell__title h1,
+.app-shell__title p {
+  margin: 0;
 }
 
-.app-menu a {
-  text-decoration: none;
-  padding: 0.5rem 0.9rem;
-  border-radius: 999px;
-  border: 2px solid rgba(255, 255, 255, 0.36);
-  background: rgba(16, 22, 31, 0.46);
-  color: #f5f7fb;
+.app-shell__title h1 {
+  font-size: clamp(1.5rem, 2.8vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
   font-weight: 700;
+}
+
+.app-shell__title p {
+  color: #4b5563;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.app-shell__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.25rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.app-shell__nav a {
+  text-decoration: none;
+  color: #4b5563;
+  font-weight: 600;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px solid transparent;
   transition:
-    transform 120ms ease,
+    color 120ms ease,
     border-color 120ms ease;
 }
 
-.app-menu a:hover {
-  transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.7);
+.app-shell__nav a:hover {
+  color: #111827;
 }
 
-.app-menu a.app-menu__link--active {
-  background: #ffffff;
-  color: #141a23;
-  border-color: #ffffff;
+.app-shell__nav a.app-shell__nav-link--active {
+  color: #111827;
+  border-color: #111827;
 }
 
-.app-shell {
-  width: min(1100px, 100%);
-  margin: 0 auto;
+.app-shell__content {
+  min-width: 0;
 }

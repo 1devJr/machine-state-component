@@ -1,16 +1,42 @@
-<main class="app-empty">
-  <h1>demo-app</h1>
+<main class="app-shell">
+  <header class="app-shell__header">
+    <div class="app-shell__title">
+      <h1>machine-state demo</h1>
+      <p>
+        Documentacao viva, scaffold base e exemplos pequenos para validar a
+        engine.
+      </p>
+    </div>
 
-  <nav class="app-menu" aria-label="Menu principal">
-    <a routerLink="/movie-search" routerLinkActive="app-menu__link--active"
-      >Movie Search</a
-    >
-    <a routerLink="/pokemon-search" routerLinkActive="app-menu__link--active"
-      >Pokemon Search</a
-    >
-  </nav>
+    <nav class="app-shell__nav" aria-label="Menu principal">
+      <a routerLink="/live-docs" routerLinkActive="app-shell__nav-link--active"
+        >Live Docs</a
+      >
+      <a routerLink="/core" routerLinkActive="app-shell__nav-link--active"
+        >Core Reference</a
+      >
+      <a routerLink="/task-board" routerLinkActive="app-shell__nav-link--active"
+        >Task Board</a
+      >
+      <a
+        routerLink="/project-overview"
+        routerLinkActive="app-shell__nav-link--active"
+        >Project Overview</a
+      >
+      <a
+        routerLink="/movie-search"
+        routerLinkActive="app-shell__nav-link--active"
+        >Movie Search</a
+      >
+      <a
+        routerLink="/pokemon-search"
+        routerLinkActive="app-shell__nav-link--active"
+        >Pokemon Search</a
+      >
+    </nav>
+  </header>
 
-  <section class="app-shell">
+  <section class="app-shell__content">
     <router-outlet />
   </section>
 </main>

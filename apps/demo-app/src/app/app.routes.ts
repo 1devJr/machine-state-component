@@ -4,7 +4,14 @@ export const appRoutes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'movie-search',
+    redirectTo: 'live-docs',
+  },
+  {
+    path: 'live-docs',
+    loadComponent: () =>
+      import('./live-docs/live-docs-page.component').then(
+        (module) => module.LiveDocsPageComponent,
+      ),
   },
   {
     path: 'movie-search',
@@ -21,7 +28,35 @@ export const appRoutes: Routes = [
       ),
   },
   {
+    path: 'core',
+    loadComponent: () =>
+      import('./my-core/my-core-core.component').then(
+        (module) => module.MyCoreCoreComponent,
+      ),
+  },
+  {
+    path: 'task-board',
+    loadComponent: () =>
+      import('./task-board/task-board-core.component').then(
+        (module) => module.TaskBoardCoreComponent,
+      ),
+  },
+  {
+    path: 'project-overview',
+    loadComponent: () =>
+      import('./project-overview/project-overview-core.component').then(
+        (module) => module.ProjectOverviewCoreComponent,
+      ),
+  },
+  {
+    path: 'project-overview/new-task',
+    loadComponent: () =>
+      import('./project-overview/project-overview-task-page.component').then(
+        (module) => module.ProjectOverviewTaskPageComponent,
+      ),
+  },
+  {
     path: '**',
-    redirectTo: 'movie-search',
+    redirectTo: 'live-docs',
   },
 ];
