@@ -14,6 +14,33 @@ import type {
   EventFromActions,
 } from '../types/core';
 
+function createCompositionFacadeView<
+  TState extends EngineState<TStatus>,
+  TStatus extends string,
+  TActions extends ActionCreatorRecord,
+  TServices extends Record<string, unknown>,
+  TComposition extends CompositionWithConnections,
+>(
+  baseFacade: EngineFacade<
+    TState,
+    TStatus,
+    EventFromActions<TActions>,
+    TServices
+  >,
+): EngineFacade<
+  CompositionState<TState, TComposition>,
+  TStatus,
+  EventFromActions<TActions>,
+  TServices
+> {
+  return baseFacade as EngineFacade<
+    CompositionState<TState, TComposition>,
+    TStatus,
+    EventFromActions<TActions>,
+    TServices
+  >;
+}
+
 class CoreArtifactRuntime<
   TState extends EngineState<TStatus>,
   TStatus extends string,
@@ -159,12 +186,13 @@ class ComposedEngineRuntime<
 
     composition.connectionRuntime?.enableAll();
 
-    const facade = baseFacade as unknown as EngineFacade<
-      CompositionState<TState, TComposition>,
+    const facade = createCompositionFacadeView<
+      TState,
       TStatus,
-      EventFromActions<TActions>,
-      TServices
-    >;
+      TActions,
+      TServices,
+      TComposition
+    >(baseFacade);
 
     const actions = bindActionPort<
       TActions,

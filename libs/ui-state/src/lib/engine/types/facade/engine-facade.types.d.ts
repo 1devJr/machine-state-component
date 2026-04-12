@@ -15,4 +15,9 @@ export interface EngineFacadeConfig<
   transitions?: TransitionTable<TState, TStatus, TEvent>;
   globalTransitions?: GlobalTransitions<TState, TStatus, TEvent>;
   services?: TServices;
+  onEffectError?: (context: {
+    effectId: string;
+    eventType: TEvent['type'];
+    error: unknown;
+  }) => void;
 }

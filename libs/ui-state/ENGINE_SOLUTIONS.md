@@ -8,6 +8,7 @@
 ## Índice
 
 ### Problemas Críticos 🔴
+
 1. [`Signal<any>` na API pública do kernel](#1-signalany-na-api-pública-do-kernel)
 2. [Double casts `as unknown as`](#2-double-casts-as-unknown-as)
 3. [Efeitos assíncronos fire-and-forget](#3-efeitos-assíncronos-fire-and-forget)
@@ -16,6 +17,7 @@
 6. [`effects.filter().sort()` em cada dispatch](#6-effectsfiltersort-em-cada-dispatch)
 
 ### Melhorias 🟡
+
 7. [Hooks disparam sem transição registrada](#7-hooks-disparam-sem-transição-registrada)
 8. [`reset()` não dispara hooks](#8-reset-não-dispara-hooks)
 9. [`#buildConnectionRuntime` muito longo](#9-buildconnectionruntime-muito-longo)
@@ -50,9 +52,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Signal } from '@angular/core';
 
-export function defineSelections<TSelections extends Record<string, unknown>>(
-  selections: (state: Signal<any>) => TSelections,
-): (state: Signal<any>) => TSelections {
+export function defineSelections<TSelections extends Record<string, unknown>>(selections: (state: Signal<any>) => TSelections): (state: Signal<any>) => TSelections {
   return selections;
 }
 ```
@@ -63,12 +63,7 @@ export function defineSelections<TSelections extends Record<string, unknown>>(
 // Sem eslint-disable — não precisa mais de `any`
 import type { Signal } from '@angular/core';
 
-export function defineSelections<
-  TState extends object,
-  TSelections extends Record<string, unknown>,
->(
-  selections: (state: Signal<TState>) => TSelections,
-): (state: Signal<TState>) => TSelections {
+export function defineSelections<TState extends object, TSelections extends Record<string, unknown>>(selections: (state: Signal<TState>) => TSelections): (state: Signal<TState>) => TSelections {
   return selections;
 }
 ```
@@ -107,12 +102,7 @@ A mudança também requer atualizar o `eslint-disable` no topo do arquivo — el
 ##### ❌ Código atual
 
 ```typescript
-const facade = baseFacade as unknown as EngineFacade<
-  CompositionState<TState, TComposition>,
-  TStatus,
-  EventFromActions<TActions>,
-  TServices
->;
+const facade = baseFacade as unknown as EngineFacade<CompositionState<TState, TComposition>, TStatus, EventFromActions<TActions>, TServices>;
 ```
 
 ##### ✅ Código corrigido
@@ -125,24 +115,11 @@ Criar um wrapper tipado que projeta o estado:
  * A facade interna continua com TState, mas a view pública expõe CompositionState.
  * Isso é seguro porque os slices de composição são registrados antes de qualquer leitura.
  */
-function createCompositionFacadeView<
-  TState extends EngineState<TStatus>,
-  TStatus extends string,
-  TActions extends ActionCreatorRecord,
-  TServices extends Record<string, unknown>,
-  TComposition extends CompositionWithConnections,
->(
-  baseFacade: EngineFacade<TState, TStatus, EventFromActions<TActions>, TServices>,
-): EngineFacade<CompositionState<TState, TComposition>, TStatus, EventFromActions<TActions>, TServices> {
+function createCompositionFacadeView<TState extends EngineState<TStatus>, TStatus extends string, TActions extends ActionCreatorRecord, TServices extends Record<string, unknown>, TComposition extends CompositionWithConnections>(baseFacade: EngineFacade<TState, TStatus, EventFromActions<TActions>, TServices>): EngineFacade<CompositionState<TState, TComposition>, TStatus, EventFromActions<TActions>, TServices> {
   // A facade usa signals — o state é um proxy reativo.
   // Após registerSlice, o signal já inclui as propriedades de composição.
   // O cast aqui é seguro SOMENTE porque enableAll() já foi chamado antes.
-  return baseFacade as EngineFacade<
-    CompositionState<TState, TComposition>,
-    TStatus,
-    EventFromActions<TActions>,
-    TServices
-  >;
+  return baseFacade as EngineFacade<CompositionState<TState, TComposition>, TStatus, EventFromActions<TActions>, TServices>;
 }
 ```
 
@@ -192,9 +169,7 @@ subscribe: (listener) =>
 ##### ❌ Código atual
 
 ```typescript
-const artifacts = (
-  pluggable.component as unknown as PluggableWithArtifacts<TState, TStatus, TEvent, TServices>
-).storeArtifacts;
+const artifacts = (pluggable.component as unknown as PluggableWithArtifacts<TState, TStatus, TEvent, TServices>).storeArtifacts;
 ```
 
 ##### ✅ Código corrigido
@@ -204,22 +179,13 @@ const artifacts = (
  * Extrai storeArtifacts de um componente pluggable, se disponível.
  * Retorna undefined se o componente não implementa storeArtifacts.
  */
-function extractPluggableArtifacts<
-  TState extends EngineState<TStatus>,
-  TStatus extends string,
-  TEvent extends EngineEvent,
-  TServices extends Record<string, unknown>,
->(component: Type<unknown>): PluggableStoreArtifacts<TState, TStatus, TEvent, TServices> | undefined {
-  const candidate = component as Partial<
-    PluggableWithArtifacts<TState, TStatus, TEvent, TServices>
-  >;
+function extractPluggableArtifacts<TState extends EngineState<TStatus>, TStatus extends string, TEvent extends EngineEvent, TServices extends Record<string, unknown>>(component: Type<unknown>): PluggableStoreArtifacts<TState, TStatus, TEvent, TServices> | undefined {
+  const candidate = component as Partial<PluggableWithArtifacts<TState, TStatus, TEvent, TServices>>;
   return candidate.storeArtifacts;
 }
 
 // Uso:
-const artifacts = extractPluggableArtifacts<TState, TStatus, TEvent, TServices>(
-  pluggable.component,
-);
+const artifacts = extractPluggableArtifacts<TState, TStatus, TEvent, TServices>(pluggable.component);
 ```
 
 ##### 📝 Explicação
@@ -251,10 +217,10 @@ Migrar para `ActionCatalog` (veja também [item 18](#18-editoractions--dois-padr
 import { defineActionCatalog } from '../store/action-catalog';
 
 export const editorActionCatalog = defineActionCatalog({
-  open:   { type: 'editor/open' },
-  close:  { type: 'editor/close' },
+  open: { type: 'editor/open' },
+  close: { type: 'editor/close' },
   update: { type: 'editor/update', payload: (partial: Record<string, unknown>) => ({ partial }) },
-  save:   { type: 'editor/save' },
+  save: { type: 'editor/save' },
   cancel: { type: 'editor/cancel' },
 });
 
@@ -288,10 +254,7 @@ export class EngineEffectsRuntime<TState, TStatus, TEvent, TServices> {
   }
 
   execute(state, event, dispatch, getState): void {
-    const effects = this.effectRegistry
-      .listByEvent(event.type)
-      .filter(/* ... */)
-      .sort(/* ... */);
+    const effects = this.effectRegistry.listByEvent(event.type).filter(/* ... */).sort(/* ... */);
 
     for (const effect of effects) {
       try {
@@ -448,13 +411,7 @@ function createConnectionLink<TSourceCreator, TTargetCreator>(
 Separar em dois métodos com contratos claros:
 
 ```typescript
-function createConnectionLink<
-  TSourceCreator extends AnyActionCreator,
-  TTargetCreator extends AnyActionCreator,
->(
-  source: TSourceCreator,
-  target: TTargetCreator,
-): ConnectionLink<TSourceCreator, TTargetCreator> {
+function createConnectionLink<TSourceCreator extends AnyActionCreator, TTargetCreator extends AnyActionCreator>(source: TSourceCreator, target: TTargetCreator): ConnectionLink<TSourceCreator, TTargetCreator> {
   const sourceType = source.actionType as ReturnType<TSourceCreator>['type'];
   const targetType = target.actionType as ReturnType<TTargetCreator>['type'];
 
@@ -482,8 +439,7 @@ function createConnectionLink<
     target,
     sourceType,
     targetType,
-    mapWith(mapper: (event: TSourceEvent) => TTargetPayload):
-      ConnectionLinkResolved<TSourceCreator, TTargetCreator> {
+    mapWith(mapper: (event: TSourceEvent) => TTargetPayload): ConnectionLinkResolved<TSourceCreator, TTargetCreator> {
       return new ResolvedConnectionLink(source, target, mapper);
     },
   };
@@ -491,9 +447,7 @@ function createConnectionLink<
   // O tipo `ConnectionLink` é uma union: se payloads são compatíveis, retorna `resolved`.
   // Se não, retorna `needsMap` com o método `mapWith`.
   // TypeScript seleciona o arm correto da union automaticamente.
-  return (
-    isPayloadCompatible(source, target) ? resolved : needsMap
-  ) as ConnectionLink<TSourceCreator, TTargetCreator>;
+  return (isPayloadCompatible(source, target) ? resolved : needsMap) as ConnectionLink<TSourceCreator, TTargetCreator>;
 }
 
 function isPayloadCompatible(_source: AnyActionCreator, _target: AnyActionCreator): boolean {
@@ -509,24 +463,16 @@ E atualizar o tipo `ConnectionLink`:
 
 ```typescript
 // pluggable.types.ts — antes:
-export type ConnectionLink<TSource, TTarget> =
-  PayloadCompatible<TSource, TTarget> extends true
-    ? ConnectionLinkResolved<TSource, TTarget>
-    : ConnectionLinkNeedsMap<TSource, TTarget>;
+export type ConnectionLink<TSource, TTarget> = PayloadCompatible<TSource, TTarget> extends true ? ConnectionLinkResolved<TSource, TTarget> : ConnectionLinkNeedsMap<TSource, TTarget>;
 
 // Atualizar ConnectionLinkNeedsMap para usar mapWith:
-export interface ConnectionLinkNeedsMap<
-  TSourceCreator extends AnyActionCreator,
-  TTargetCreator extends AnyActionCreator,
-> {
+export interface ConnectionLinkNeedsMap<TSourceCreator extends AnyActionCreator, TTargetCreator extends AnyActionCreator> {
   readonly source: TSourceCreator;
   readonly target: TTargetCreator;
   readonly sourceType: EventFromCreator<TSourceCreator>['type'];
   readonly targetType: EventFromCreator<TTargetCreator>['type'];
   /** Transforma o payload do source para o formato esperado pelo target. */
-  mapWith: (
-    mapper: (event: EventFromCreator<TSourceCreator>) => PayloadFromCreator<TTargetCreator>,
-  ) => ConnectionLinkResolved<TSourceCreator, TTargetCreator>;
+  mapWith: (mapper: (event: EventFromCreator<TSourceCreator>) => PayloadFromCreator<TTargetCreator>) => ConnectionLinkResolved<TSourceCreator, TTargetCreator>;
 }
 ```
 
@@ -536,13 +482,13 @@ Agora a API tem dois caminhos explícitos:
 
 ```typescript
 // Payloads compatíveis — retorna resolvido diretamente:
-link(parent.actions.historyRecorded, child.actions.ingestSearch)
+link(parent.actions.historyRecorded, child.actions.ingestSearch);
 // → ConnectionLinkResolved (pronto para usar)
 
 // Payloads incompatíveis — precisa de transformação:
 link(parent.actions.submit, child.actions.load).mapWith((event) => ({
   query: event.term,
-}))
+}));
 // → ConnectionLinkResolved (com mapper customizado)
 ```
 
@@ -674,22 +620,18 @@ export function createEffectRegistry<...>(): EffectRegistry<...> {
 ```
 
 E no runtime:
+
 ```typescript
 const effects = this.effectRegistry
   .listByEvent(event.type)
-  .filter(e => !e.when || e.when(state, event))
+  .filter((e) => !e.when || e.when(state, event))
   .sort((a, b) => (a.priority ?? 50) - (b.priority ?? 50));
 ```
 
 #### ✅ Código corrigido (`effect.registry.ts`)
 
 ```typescript
-export function createEffectRegistry<
-  TState extends EngineState<TStatus>,
-  TStatus extends string,
-  TEvent extends EngineEvent,
-  TServices extends Record<string, unknown> = Record<string, unknown>,
->(): EffectRegistry<TState, TStatus, TEvent, TServices> {
+export function createEffectRegistry<TState extends EngineState<TStatus>, TStatus extends string, TEvent extends EngineEvent, TServices extends Record<string, unknown> = Record<string, unknown>>(): EffectRegistry<TState, TStatus, TEvent, TServices> {
   const effects: EffectConfig<TState, TStatus, TEvent, TServices>[] = [];
   // Índice pré-computado: eventType → effects já ordenados por prioridade
   const indexByEvent = new Map<string, EffectConfig<TState, TStatus, TEvent, TServices>[]>();
@@ -714,9 +656,7 @@ export function createEffectRegistry<
   return {
     register(nextEffects) {
       const existingIds = new Set(effects.map((e) => e.id));
-      const normalized = nextEffects
-        .filter((e) => !existingIds.has(e.id))
-        .map((e) => ({ ...e, priority: e.priority ?? 50 }));
+      const normalized = nextEffects.filter((e) => !existingIds.has(e.id)).map((e) => ({ ...e, priority: e.priority ?? 50 }));
 
       effects.push(...normalized);
       rebuildIndex(); // Recalcula índice apenas no registro (raro)
@@ -748,6 +688,7 @@ export function createEffectRegistry<
 ```
 
 E no runtime, simplificar:
+
 ```typescript
 execute(state, event, dispatch, getState): void {
   // listByEvent já retorna ordenado por prioridade — sem sort!
@@ -818,11 +759,7 @@ E atualizar a interface do hook:
 // store/engine.types.ts
 export interface ReducerHook<TState, TStatus extends string, TEvent extends EngineEvent> {
   onBeforeTransition?: (state: TState, event: TEvent) => void;
-  onAfterTransition?: (
-    state: TState,
-    event: TEvent,
-    meta?: { hasTransition: boolean },
-  ) => void;
+  onAfterTransition?: (state: TState, event: TEvent, meta?: { hasTransition: boolean }) => void;
 }
 ```
 
@@ -988,7 +925,7 @@ O método `#buildConnectionRuntime` original tinha ~95 linhas fazendo tudo: vali
 #### ❌ Código atual
 
 ```typescript
-options?.id ?? `${String(slot)}-${component.name}`
+options?.id ?? `${String(slot)}-${component.name}`;
 ```
 
 #### ✅ Código corrigido
@@ -1011,7 +948,7 @@ function generatePluggableId(slot: string | symbol, component: Type<unknown>): s
 }
 
 // Uso:
-options?.id ?? generatePluggableId(slot, component)
+options?.id ?? generatePluggableId(slot, component);
 ```
 
 #### 📝 Explicação
@@ -1034,7 +971,15 @@ const destroy = () => {
 };
 
 return {
-  id, artifact, facade, baseFacade, actions, selections, composition, connectionPort, destroy,
+  id,
+  artifact,
+  facade,
+  baseFacade,
+  actions,
+  selections,
+  composition,
+  connectionPort,
+  destroy,
 };
 ```
 
@@ -1062,11 +1007,19 @@ const destroy = () => {
 };
 
 return {
-  id, artifact, facade, baseFacade,
+  id,
+  artifact,
+  facade,
+  baseFacade,
   actions: guardedActions,
-  selections, composition, connectionPort, destroy,
+  selections,
+  composition,
+  connectionPort,
+  destroy,
   /** Verifica se a engine foi destruída. */
-  get isDestroyed() { return destroyed; },
+  get isDestroyed() {
+    return destroyed;
+  },
 };
 ```
 
@@ -1120,6 +1073,7 @@ runAfter(state, event) {
 #### 📝 Explicação
 
 Duas melhorias:
+
 1. **`try/catch` individual** — um hook falhando não impede os subsequentes de executar
 2. **`[...hooks]` snapshot** — se um hook se remove durante a iteração (via cleanup function), a iteração continua sem pular elementos
 
@@ -1407,19 +1361,17 @@ import { defineActionCatalog } from '../store/action-catalog';
  * Type-safe: cada creator produz o evento correto sem casts.
  */
 export const editorActionCatalog = defineActionCatalog({
-  editorOpen:   { type: 'editor/open' },
-  editorClose:  { type: 'editor/close' },
+  editorOpen: { type: 'editor/open' },
+  editorClose: { type: 'editor/close' },
   editorUpdate: {
     type: 'editor/update',
     payload: (partial: Record<string, unknown>) => ({ partial }),
   },
-  editorSave:   { type: 'editor/save' },
+  editorSave: { type: 'editor/save' },
   editorCancel: { type: 'editor/cancel' },
 });
 
-export type EditorEvent = ReturnType<
-  (typeof editorActionCatalog.creators)[keyof typeof editorActionCatalog.creators]
->;
+export type EditorEvent = ReturnType<(typeof editorActionCatalog.creators)[keyof typeof editorActionCatalog.creators]>;
 ```
 
 E atualizar `editor.types.ts`:
@@ -1455,17 +1407,13 @@ Um único padrão para todas as ações: `ActionCatalog`. Sem classe, sem `as TE
 #### ❌ Código atual
 
 ```typescript
-const baseDraft = state.config
-  ? (JSON.parse(JSON.stringify(state.config)) as TDraft)
-  : createDefaultDraft();
+const baseDraft = state.config ? (JSON.parse(JSON.stringify(state.config)) as TDraft) : createDefaultDraft();
 ```
 
 #### ✅ Código corrigido
 
 ```typescript
-const baseDraft = state.config
-  ? structuredClone(state.config) as TDraft
-  : createDefaultDraft();
+const baseDraft = state.config ? (structuredClone(state.config) as TDraft) : createDefaultDraft();
 ```
 
 #### 📝 Explicação
@@ -1484,10 +1432,7 @@ const baseDraft = state.config
 const updateProjection = () => {
   const nextChildState = childPort.getState?.();
   if (!nextChildState) return;
-  parentPort.setSliceState?.(
-    projectionSliceKey,
-    projection.select(nextChildState) as Record<string, unknown>,
-  );
+  parentPort.setSliceState?.(projectionSliceKey, projection.select(nextChildState) as Record<string, unknown>);
 };
 
 updateProjection();
@@ -1525,7 +1470,7 @@ function shallowEqual(a: Record<string, unknown>, b: Record<string, unknown>): b
   const keysA = Object.keys(a);
   const keysB = Object.keys(b);
   if (keysA.length !== keysB.length) return false;
-  return keysA.every(key => Object.is(a[key], b[key]));
+  return keysA.every((key) => Object.is(a[key], b[key]));
 }
 ```
 
@@ -1561,33 +1506,34 @@ Se a lista pudesse ser reordenada, a melhor opção seria adicionar um `id` úni
 
 ## Resumo das Soluções
 
-| # | Issue | Tipo | Esforço | Arquivos Afetados |
-|---|-------|------|---------|-------------------|
-| 1 | `Signal<any>` no kernel | 🔴 Crítico | Baixo | `core-kernel.ts` |
-| 2 | Double casts `as unknown as` | 🔴 Crítico | Alto | `composed-engine.ts`, `engine.facade.ts`, `slot.directive.ts`, `editor.actions.ts` |
-| 3 | Effects fire-and-forget | 🔴 Crítico | Médio | `engine-effects.runtime.ts` |
-| 4 | `map` dual-behavior | 🔴 Crítico | Médio | `composition.builder.ts`, `pluggable.types.ts` |
-| 5 | `window` sem `isDevMode` | 🔴 Crítico | Baixo | `devtools.registry.ts` |
-| 6 | Sort por dispatch | 🔴 Crítico | Médio | `effect.registry.ts`, `engine-effects.runtime.ts` |
-| 7 | Hooks sem transição | 🟡 Melhoria | Baixo | `engine.reducer.ts`, `engine.types.ts` |
-| 8 | `reset()` sem hooks | 🟡 Melhoria | Mínimo | `engine.reducer.ts` |
-| 9 | `#buildConnectionRuntime` longo | 🟡 Melhoria | Médio | `composition.builder.ts` |
-| 10 | `component.name` em IDs | 🟡 Melhoria | Baixo | `composition.builder.ts` |
-| 11 | `destroy()` incompleto | 🟡 Melhoria | Baixo | `composed-engine.ts` |
-| 12 | Hook registry sem try/catch | 🟡 Melhoria | Mínimo | `hook.registry.ts` |
-| 13 | Slice duplicata crash | 🟡 Melhoria | Mínimo | `slice.registry.ts` |
-| 14 | `state` sempre undefined | 🟡 Melhoria | Baixo | `pluggable.base.ts` |
-| 15 | Transition stack implícito | 🟡 Melhoria | Médio | `transition.registry.ts` |
-| 16 | Devtools `enable` flag | 🟡 Melhoria | Mínimo | `devtools.state.ts` |
-| 17 | Overlay sem OnPush | 🟡 Melhoria | Mínimo | `devtools-overlay.component.ts` |
-| 18 | EditorActions duplicado | 🟡 Melhoria | Baixo | `editor.actions.ts`, `editor.types.ts` |
-| 19 | JSON deep clone | 🟡 Melhoria | Mínimo | `editor.types.ts` |
-| 20 | Projection sem check | 🟡 Melhoria | Baixo | `composition.builder.ts` |
-| 21 | Track expression fraca | 🟡 Melhoria | Mínimo | `devtools-overlay.component.ts` |
+| #   | Issue                           | Tipo        | Esforço | Arquivos Afetados                                                                  |
+| --- | ------------------------------- | ----------- | ------- | ---------------------------------------------------------------------------------- |
+| 1   | `Signal<any>` no kernel         | 🔴 Crítico  | Baixo   | `core-kernel.ts`                                                                   |
+| 2   | Double casts `as unknown as`    | 🔴 Crítico  | Alto    | `composed-engine.ts`, `engine.facade.ts`, `slot.directive.ts`, `editor.actions.ts` |
+| 3   | Effects fire-and-forget         | 🔴 Crítico  | Médio   | `engine-effects.runtime.ts`                                                        |
+| 4   | `map` dual-behavior             | 🔴 Crítico  | Médio   | `composition.builder.ts`, `pluggable.types.ts`                                     |
+| 5   | `window` sem `isDevMode`        | 🔴 Crítico  | Baixo   | `devtools.registry.ts`                                                             |
+| 6   | Sort por dispatch               | 🔴 Crítico  | Médio   | `effect.registry.ts`, `engine-effects.runtime.ts`                                  |
+| 7   | Hooks sem transição             | 🟡 Melhoria | Baixo   | `engine.reducer.ts`, `engine.types.ts`                                             |
+| 8   | `reset()` sem hooks             | 🟡 Melhoria | Mínimo  | `engine.reducer.ts`                                                                |
+| 9   | `#buildConnectionRuntime` longo | 🟡 Melhoria | Médio   | `composition.builder.ts`                                                           |
+| 10  | `component.name` em IDs         | 🟡 Melhoria | Baixo   | `composition.builder.ts`                                                           |
+| 11  | `destroy()` incompleto          | 🟡 Melhoria | Baixo   | `composed-engine.ts`                                                               |
+| 12  | Hook registry sem try/catch     | 🟡 Melhoria | Mínimo  | `hook.registry.ts`                                                                 |
+| 13  | Slice duplicata crash           | 🟡 Melhoria | Mínimo  | `slice.registry.ts`                                                                |
+| 14  | `state` sempre undefined        | 🟡 Melhoria | Baixo   | `pluggable.base.ts`                                                                |
+| 15  | Transition stack implícito      | 🟡 Melhoria | Médio   | `transition.registry.ts`                                                           |
+| 16  | Devtools `enable` flag          | 🟡 Melhoria | Mínimo  | `devtools.state.ts`                                                                |
+| 17  | Overlay sem OnPush              | 🟡 Melhoria | Mínimo  | `devtools-overlay.component.ts`                                                    |
+| 18  | EditorActions duplicado         | 🟡 Melhoria | Baixo   | `editor.actions.ts`, `editor.types.ts`                                             |
+| 19  | JSON deep clone                 | 🟡 Melhoria | Mínimo  | `editor.types.ts`                                                                  |
+| 20  | Projection sem check            | 🟡 Melhoria | Baixo   | `composition.builder.ts`                                                           |
+| 21  | Track expression fraca          | 🟡 Melhoria | Mínimo  | `devtools-overlay.component.ts`                                                    |
 
 ### Ordem de implementação sugerida
 
 **Fase 1 — Quick wins (1-2h):**
+
 - \#1 `Signal<any>` → `Signal<TState>`
 - \#5 `isDevMode()` guard
 - \#12 Hook try/catch
@@ -1598,6 +1544,7 @@ Se a lista pudesse ser reordenada, a melhor opção seria adicionar um `id` úni
 - \#21 `track $index`
 
 **Fase 2 — Melhorias estruturais (3-4h):**
+
 - \#3 Effects runtime com error handler + pending tracking
 - \#6 Effect registry com índice pré-computado
 - \#7 Hook meta com `hasTransition`
@@ -1608,6 +1555,7 @@ Se a lista pudesse ser reordenada, a melhor opção seria adicionar um `id` úni
 - \#20 Projection shallowEqual
 
 **Fase 3 — Refatorações maiores (4-8h):**
+
 - \#2 Eliminar double casts com assertion functions
 - \#4 Separar `map` dual-behavior em `mapWith`
 - \#9 Extrair `ConnectionRuntime`

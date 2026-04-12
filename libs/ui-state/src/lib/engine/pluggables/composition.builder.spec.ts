@@ -135,7 +135,7 @@ describe('CompositionBuilder', () => {
       ])
       .build();
 
-    expect(composition.slots.input?.id).toBe('input-InputPluggable');
+    expect(composition.slots.input?.id).toBe('input-pluggable');
     expect(composition.slots.input?.config).toEqual({
       placeholder: 'Buscar...',
     });
@@ -214,6 +214,7 @@ describe('CompositionBuilder', () => {
     const childPort = createChildPort();
     const parentDispatch = vi.spyOn(parentPort, 'dispatch');
     const childDispatch = vi.spyOn(childPort, 'dispatch');
+    const setSliceState = vi.spyOn(parentPort, 'setSliceState');
 
     const composition = createComposition(schema, { parentPort })
       .withSlot('rules', RulesPluggable, { compact: true })
@@ -272,6 +273,14 @@ describe('CompositionBuilder', () => {
       pendingCount: 2,
       lastError: null,
     });
+
+    childPort.dispatch({
+      type: childCatalog.types.hydrated,
+      status: 'ready',
+      pendingCount: 2,
+      errorMessage: null,
+    });
+    expect(setSliceState).toHaveBeenCalledTimes(1);
 
     composition.connectionRuntime?.disable('rules');
     expect(parentPort.__registeredSlices.has('rulesProjection')).toBe(false);

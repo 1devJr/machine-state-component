@@ -14,6 +14,29 @@ export function createEffectRegistry<
   TServices extends Record<string, unknown> = Record<string, unknown>,
 >(): EffectRegistry<TState, TStatus, TEvent, TServices> {
   const effects: EffectConfig<TState, TStatus, TEvent, TServices>[] = [];
+  const effectsByEvent = new Map<
+    TEvent['type'],
+    EffectConfig<TState, TStatus, TEvent, TServices>[]
+  >();
+
+  const rebuildEventIndex = () => {
+    effectsByEvent.clear();
+
+    for (const effect of effects) {
+      const entries = effectsByEvent.get(effect.event) ?? [];
+      entries.push(effect);
+      effectsByEvent.set(effect.event, entries);
+    }
+
+    for (const [eventType, eventEffects] of effectsByEvent.entries()) {
+      effectsByEvent.set(
+        eventType,
+        [...eventEffects].sort(
+          (a, b) => (a.priority ?? 50) - (b.priority ?? 50),
+        ),
+      );
+    }
+  };
 
   return {
     register(nextEffects) {
@@ -26,6 +49,7 @@ export function createEffectRegistry<
         }));
 
       effects.push(...normalized);
+      rebuildEventIndex();
 
       return () => {
         for (const effect of normalized) {
@@ -34,6 +58,7 @@ export function createEffectRegistry<
             effects.splice(idx, 1);
           }
         }
+        rebuildEventIndex();
       };
     },
 
@@ -42,7 +67,7 @@ export function createEffectRegistry<
     },
 
     listByEvent(eventType) {
-      return effects.filter((effect) => effect.event === eventType);
+      return effectsByEvent.get(eventType) ?? [];
     },
 
     clear() {

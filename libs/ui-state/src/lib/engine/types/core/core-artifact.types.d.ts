@@ -96,18 +96,20 @@ export type AnyCoreKernel = CoreKernel<any, any, any, any, any>;
 export type CoreArtifactFromKernel<
   TKernel extends AnyCoreKernel,
   TComposition extends CompositionWithConnections,
+  TSelections extends Record<string, unknown> = KernelSelections<TKernel>,
 > = CoreArtifact<
   KernelState<TKernel>,
   KernelStatus<TKernel>,
   KernelActions<TKernel>,
   KernelServices<TKernel>,
   TComposition,
-  KernelSelections<TKernel>
+  TSelections
 >;
 
 export interface CreateCoreArtifactInput<
   TKernel extends AnyCoreKernel,
   TComposition extends CompositionWithConnections,
+  TSelections extends Record<string, unknown> = KernelSelections<TKernel>,
 > {
   composition: (
     context: CoreArtifactContext<
@@ -120,7 +122,8 @@ export interface CreateCoreArtifactInput<
   services?: KernelServices<TKernel>;
   selections?: KernelComposedSelections<
     TKernel,
-    KernelComposedState<TKernel, TComposition>
+    KernelComposedState<TKernel, TComposition>,
+    TSelections
   >;
 }
 
@@ -172,13 +175,14 @@ export interface ComposedEngineResult<
 export type ComposedEngineFromKernel<
   TKernel extends AnyCoreKernel,
   TComposition extends CompositionWithConnections,
+  TSelections extends Record<string, unknown> = KernelSelections<TKernel>,
 > = ComposedEngineResult<
   KernelState<TKernel>,
   KernelStatus<TKernel>,
   KernelActions<TKernel>,
   KernelServices<TKernel>,
   TComposition,
-  KernelSelections<TKernel>
+  TSelections
 >;
 
 export interface TransitionChain<

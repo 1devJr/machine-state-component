@@ -15,6 +15,7 @@ import {
   ENGINE_PLUGGABLE_CONTEXT,
   PluggableConfig,
   PluggableContext,
+  PluggableStoreArtifacts,
   PluggableWithArtifacts,
   SlotId,
 } from './pluggable.types';
@@ -76,19 +77,21 @@ export class EngineSlotDirective<
     });
   }
 
+  #extractStoreArtifacts(
+    component: Type<unknown>,
+  ): PluggableStoreArtifacts<TState, TStatus, TEvent, TServices> | undefined {
+    const candidate = component as Partial<
+      PluggableWithArtifacts<TState, TStatus, TEvent, TServices>
+    >;
+    return candidate.storeArtifacts;
+  }
+
   #createComponent(
     facade: EngineFacade<TState, TStatus, TEvent, TServices>,
     slotId: SlotId,
     pluggable: PluggableConfig,
   ): void {
-    const artifacts = (
-      pluggable.component as unknown as PluggableWithArtifacts<
-        TState,
-        TStatus,
-        TEvent,
-        TServices
-      >
-    ).storeArtifacts;
+    const artifacts = this.#extractStoreArtifacts(pluggable.component);
 
     const sliceRegistration = pluggable.slotSlice ?? artifacts?.slice;
 
