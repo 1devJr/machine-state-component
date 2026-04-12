@@ -1,0 +1,44 @@
+import type { Signal } from '@angular/core';
+import {
+  defineCoreKernel,
+  defineKernelEffects,
+  defineKernelTransitions,
+  defineSelections,
+  defineStore,
+} from '@machine-state-component/ui-state';
+import {
+  create<%= className %>ChildDemoInitialState,
+  <%= className %>ChildDemoState,
+} from '../<%= fileName %>-child-demo.types';
+import { <%= propertyName %>ChildDemoActions } from './<%= fileName %>-child-demo.actions';
+
+export const <%= propertyName %>ChildDemoKernel = defineCoreKernel({
+  id: '<%= fileName %>-child-demo',
+  store: defineStore<<%= className %>ChildDemoState>({
+    initialState: create<%= className %>ChildDemoInitialState(),
+  }),
+  actions: <%= propertyName %>ChildDemoActions,
+  transitions: defineKernelTransitions<<%= className %>ChildDemoState>()(
+    <%= propertyName %>ChildDemoActions,
+    ({ chain, actions }) =>
+      chain()
+        .globalOn(actions.recordParentEvent, (state, event) => ({
+          ...state,
+          status: 'ready',
+          eventCount: state.eventCount + 1,
+          lastEventType: event.eventType,
+          notes: [event.note, ...state.notes].slice(0, 4),
+        }))
+        .globalOn(actions.clear, () => create<%= className %>ChildDemoInitialState())
+        .done(),
+  ),
+  effects: defineKernelEffects<<%= className %>ChildDemoState>()(
+    <%= propertyName %>ChildDemoActions,
+    () => [],
+  ),
+  selections: defineSelections((state: Signal<<%= className %>ChildDemoState>) => ({
+    eventCount: () => state().eventCount,
+    lastEventType: () => state().lastEventType,
+    notes: () => state().notes,
+  })),
+});

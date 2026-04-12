@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@machine-state/engine": ["tools/ui-state-plugin"],
       "@machine-state-component/ui-state": ["libs/ui-state/src/index.ts"]
     }
   },

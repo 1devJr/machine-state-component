@@ -1,0 +1,103 @@
+import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { definePluggableStoreArtifacts } from '@machine-state-component/ui-state';
+import { <%= propertyName %>Actions } from '../../store/<%= fileName %>.actions';
+import { PluggableBase } from '../../store/<%= fileName %>.kernel';
+import { <%= className %>DiagnosticsConfig } from '../../store/<%= fileName %>.types';
+
+@Component({
+  selector: 'app-<%= fileName %>-diagnostics-pluggable',
+  standalone: true,
+  templateUrl: './<%= fileName %>-diagnostics.pluggable.html',
+  styleUrl: './<%= fileName %>-diagnostics.pluggable.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class <%= className %>DiagnosticsPluggableComponent extends PluggableBase<<%= className %>DiagnosticsConfig> {
+  static readonly storeArtifacts = definePluggableStoreArtifacts({});
+
+  readonly isPtBr = computed(() => this.state()?.lang === 'pt-br');
+  readonly timeline = computed(() =>
+    this.mergedConfig().getEventTimeline().slice(0, 5),
+  );
+  readonly flowSummary = computed(() => this.mergedConfig().getFlowSummary());
+  readonly stateSnapshot = computed(() =>
+    this.mergedConfig().getStateSnapshot(),
+  );
+  readonly selectionSnapshot = computed(() =>
+    this.mergedConfig().getSelectionSnapshot(),
+  );
+  readonly stateJson = computed(() =>
+    JSON.stringify(this.stateSnapshot(), null, 2),
+  );
+  readonly selectionJson = computed(() =>
+    JSON.stringify(this.selectionSnapshot(), null, 2),
+  );
+  readonly sliceKeys = computed(() => this.mergedConfig().getSliceKeys());
+  readonly effects = computed(() => this.mergedConfig().getEffects());
+  readonly selectionEntries = computed(() =>
+    Object.entries(this.selectionSnapshot()).map(([key, value]) => ({
+      key,
+      value:
+        typeof value === 'string'
+          ? value
+          : JSON.stringify(value, null, value && typeof value === 'object' ? 2 : 0),
+    })),
+  );
+  readonly copy = computed(() => ({
+    title: this.isPtBr() ? 'Runtime ao vivo' : 'Live runtime',
+    subtitle: this.isPtBr()
+      ? 'Uma ancora fixa para ler estado, timeline, selections e slices montados.'
+      : 'A stable anchor for reading state, timeline, selections and mounted slices.',
+    status: this.isPtBr() ? 'Status' : 'Status',
+    lastAction: this.isPtBr() ? 'Ultima acao do usuario' : 'Last user action',
+    changedFields: this.isPtBr()
+      ? 'Campos alterados'
+      : 'Changed fields',
+    slices: this.isPtBr() ? 'Slices montados' : 'Mounted slices',
+    flowTitle: this.isPtBr() ? 'Linha viva do fluxo' : 'Live flow line',
+    flowAction: this.isPtBr() ? 'Action' : 'Action',
+    flowTransition: this.isPtBr() ? 'Transition' : 'Transition',
+    flowEffect: this.isPtBr() ? 'Effect' : 'Effect',
+    flowMessage: this.isPtBr() ? 'Resumo' : 'Summary',
+    selections: this.isPtBr()
+      ? 'Saida atual das selections'
+      : 'Current selection outputs',
+    timeline: this.isPtBr() ? 'Timeline recente' : 'Recent timeline',
+    rawData: this.isPtBr() ? 'Dados brutos' : 'Raw runtime data',
+    showRaw: this.isPtBr()
+      ? 'Mostrar dados brutos'
+      : 'Show raw runtime data',
+    hideRaw: this.isPtBr() ? 'Ocultar dados brutos' : 'Hide raw runtime data',
+    storeSnapshot: this.isPtBr() ? 'Snapshot da store' : 'Store snapshot',
+    selectionSnapshot: this.isPtBr()
+      ? 'Snapshot das selections'
+      : 'Selection snapshot',
+    registeredEffects: this.isPtBr()
+      ? 'Effects registrados'
+      : 'Registered effects',
+    none: this.isPtBr() ? 'nenhum' : 'none',
+    noEvents: this.isPtBr()
+      ? 'Nenhum evento observado ainda.'
+      : 'No events observed yet.',
+  }));
+
+  toggleRawData(): void {
+    this.dispatch(<%= propertyName %>Actions.toggleRawRuntimeData());
+  }
+
+  protected override getDefaultConfig(): <%= className %>DiagnosticsConfig {
+    return {
+      getEventTimeline: () => [],
+      getStateSnapshot: () => ({}),
+      getSelectionSnapshot: () => ({}),
+      getSliceKeys: () => [],
+      getEffects: () => [],
+      getFlowSummary: () => ({
+        action: 'none',
+        transition: 'No transition yet.',
+        effect: 'none',
+        changedFields: [],
+        message: 'No runtime activity yet.',
+      }),
+    };
+  }
+}

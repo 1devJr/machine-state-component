@@ -1,0 +1,19 @@
+import { EngineState } from '@machine-state-component/ui-state';
+
+export type <%= className %>ChildDemoStatus = 'idle' | 'ready';
+
+export interface <%= className %>ChildDemoState
+  extends EngineState<<%= className %>ChildDemoStatus> {
+  eventCount: number;
+  lastEventType: string | null;
+  notes: string[];
+}
+
+export function create<%= className %>ChildDemoInitialState(): <%= className %>ChildDemoState {
+  return {
+    status: 'idle',
+    eventCount: 0,
+    lastEventType: null,
+    notes: [],
+  };
+}

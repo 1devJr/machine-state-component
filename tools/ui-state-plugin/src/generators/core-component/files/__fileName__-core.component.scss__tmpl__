@@ -1,0 +1,113 @@
+:host {
+  display: block;
+  color: #111827;
+}
+
+.engine-guide {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.engine-guide__header,
+.engine-guide__layout,
+.engine-guide__headline,
+.engine-guide__header-actions,
+.engine-guide__left,
+.engine-guide__right,
+.engine-guide__mode-header,
+.engine-guide__tabs,
+.engine-guide__advanced-header,
+.engine-guide__advanced-actions {
+  display: grid;
+  gap: 1rem;
+}
+
+.engine-guide__headline h2,
+.engine-guide__headline p,
+.engine-guide__mode-header p,
+.engine-guide__advanced-header h3,
+.engine-guide__advanced-header p,
+.engine-guide__child h3 {
+  margin: 0;
+}
+
+.engine-guide__headline p,
+.engine-guide__mode-header p,
+.engine-guide__advanced-header p,
+.engine-guide__runtime-label {
+  color: #4b5563;
+  line-height: 1.55;
+}
+
+.engine-guide__header-actions,
+.engine-guide__tabs,
+.engine-guide__advanced-actions {
+  grid-auto-flow: row;
+}
+
+.engine-guide button {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: inherit;
+  border-radius: 0.85rem;
+  padding: 0.7rem 0.9rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.engine-guide button:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.engine-guide button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.engine-guide__tabs {
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.engine-guide__tabs-button--active {
+  border-color: #111827;
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+.engine-guide__panel,
+.engine-guide__child {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.engine-guide__child {
+  display: grid;
+  gap: 1rem;
+}
+
+.engine-guide__runtime-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+@media (min-width: 52rem) {
+  .engine-guide__layout {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: start;
+  }
+}
+
+@media (min-width: 64rem) {
+  .engine-guide__header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .engine-guide__header-actions,
+  .engine-guide__advanced-actions {
+    grid-auto-flow: column;
+  }
+}

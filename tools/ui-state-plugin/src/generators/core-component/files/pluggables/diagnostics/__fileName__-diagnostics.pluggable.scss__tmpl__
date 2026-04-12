@@ -1,0 +1,122 @@
+:host {
+  display: block;
+}
+
+.runtime-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.runtime-panel__header {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.runtime-panel__header h3,
+.runtime-panel__header p,
+.runtime-panel__card h4,
+.runtime-panel__card h5,
+.runtime-panel__empty {
+  margin: 0;
+}
+
+.runtime-panel__header p,
+.runtime-panel__card span,
+.runtime-panel__empty {
+  color: #4b5563;
+  line-height: 1.55;
+}
+
+.runtime-panel__toggle {
+  justify-self: start;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #111827;
+  padding: 0.55rem 0.85rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+
+.runtime-panel__summary {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  margin: 0;
+}
+
+.runtime-panel__summary div,
+.runtime-panel__card {
+  min-width: 0;
+}
+
+.runtime-panel__summary dt {
+  color: #6b7280;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.runtime-panel__summary dd {
+  margin: 0.25rem 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.runtime-panel__card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  background: #fcfcfd;
+}
+
+.runtime-panel__flow,
+.runtime-panel__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.runtime-panel__flow li,
+.runtime-panel__list li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.8rem;
+  background: #fff;
+}
+
+.runtime-panel__raw-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.runtime-panel pre {
+  margin: 0;
+  padding: 0.85rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.8rem;
+  background: #fff;
+  overflow: auto;
+  max-height: 18rem;
+  font:
+    0.82rem/1.5 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+
+@media (min-width: 56rem) {
+  .runtime-panel__header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .runtime-panel__raw-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

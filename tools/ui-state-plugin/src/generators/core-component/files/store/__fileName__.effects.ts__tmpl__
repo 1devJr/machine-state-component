@@ -1,0 +1,41 @@
+import { defineKernelEffects } from '@machine-state-component/ui-state';
+import { <%= propertyName %>Actions } from './<%= fileName %>.actions';
+import { <%= className %>Services, <%= className %>State } from './<%= fileName %>.types';
+
+export function create<%= className %>Effects() {
+  return defineKernelEffects<<%= className %>State, <%= className %>Services>()(
+    <%= propertyName %>Actions,
+    ({ on, actions }) => [
+      on(actions.runDemoAction, {
+        id: '<%= fileName %>-run-demo-effect',
+        priority: 10,
+        handler: async ({ state, event, dispatch, services }) => {
+          await services.demoApi.wait(220);
+          dispatch(
+            actions.demoCompleted(
+              services.demoApi.buildCompletionMessage(event.label, state.lang),
+            ),
+          );
+        },
+      }),
+      on(actions.simulateError, {
+        id: '<%= fileName %>-simulate-error-effect',
+        priority: 20,
+        handler: ({ state, event, dispatch, services }) => {
+          dispatch(
+            actions.setDiagnosticMessage(
+              services.demoApi.buildErrorMessage(event.severity, state.lang),
+            ),
+          );
+        },
+      }),
+      on(actions.toggleScratchSlice, {
+        id: '<%= fileName %>-scratch-slice-effect',
+        priority: 30,
+        handler: ({ services }) => {
+          services.runtimeBridge.toggleScratchSlice();
+        },
+      }),
+    ],
+  );
+}

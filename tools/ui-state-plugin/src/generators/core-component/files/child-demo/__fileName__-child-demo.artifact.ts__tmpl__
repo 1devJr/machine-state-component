@@ -1,0 +1,16 @@
+import {
+  createChildComposedEngine,
+  createComposition,
+  defineCompositionSchema,
+} from '@machine-state-component/ui-state';
+import { <%= propertyName %>ChildDemoKernel } from './store/<%= fileName %>-child-demo.kernel';
+
+const <%= propertyName %>ChildDemoSchema = defineCompositionSchema({});
+
+export function create<%= className %>ChildDemo() {
+  return createChildComposedEngine(<%= propertyName %>ChildDemoKernel, {
+    composition: () => createComposition(<%= propertyName %>ChildDemoSchema).build(),
+  });
+}
+
+export type <%= className %>ChildDemo = ReturnType<typeof create<%= className %>ChildDemo>;

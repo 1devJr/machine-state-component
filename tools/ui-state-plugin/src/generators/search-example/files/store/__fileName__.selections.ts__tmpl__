@@ -1,0 +1,15 @@
+import type { Signal } from '@angular/core';
+import { defineSelections } from '@machine-state-component/ui-state';
+import { <%= className %>State } from './<%= fileName %>.types';
+
+export function create<%= className %>CoreSelections() {
+  return defineSelections((state: Signal<<%= className %>State>) => ({
+    query: () => state().query,
+    results: () => state().results,
+    selectedItemName: () => state().selectedItemName,
+    selectedItemDetails: () => state().selectedItemDetails,
+    errorMessage: () => state().errorMessage,
+    detailsStatus: () => state().detailsStatus,
+    detailsErrorMessage: () => state().detailsErrorMessage,
+  }));
+}

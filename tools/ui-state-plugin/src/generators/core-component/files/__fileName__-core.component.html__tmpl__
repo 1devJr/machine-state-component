@@ -1,0 +1,95 @@
+<article class="engine-guide">
+  <header class="engine-guide__header">
+    <div class="engine-guide__headline">
+      <h2>{{ copy().title }}</h2>
+      <p>{{ copy().subtitle }}</p>
+    </div>
+
+    <div class="engine-guide__header-actions">
+      <button type="button" (click)="toggleLang()">{{ copy().language }}</button>
+      <button type="button" (click)="toggleDevtools()">{{ copy().devtools }}</button>
+      <button type="button" (click)="reset()">{{ copy().reset }}</button>
+    </div>
+  </header>
+
+  <section class="engine-guide__layout">
+    <section class="engine-guide__left">
+      <div class="engine-guide__mode-header">
+        <p>{{ copy().learningMode }}</p>
+        <div class="engine-guide__tabs">
+          @for (mode of learningModes(); track mode.id) {
+            <button
+              type="button"
+              [class.engine-guide__tabs-button--active]="state().learningMode === mode.id"
+              (click)="setLearningMode(mode.id)"
+            >
+              {{ mode.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (state().learningMode === 'flow') {
+        <section class="engine-guide__panel">
+          <div
+            [uiEngineSlot]="composition.slotIds.controls"
+            [pluggable]="composition.slots.controls"
+            [facade]="facade.engineFacade"
+          ></div>
+        </section>
+      } @else {
+        <section class="engine-guide__panel">
+          <div
+            [uiEngineSlot]="composition.slotIds.docs"
+            [pluggable]="composition.slots.docs"
+            [facade]="facade.engineFacade"
+          ></div>
+        </section>
+      }
+
+      @if (state().learningMode === 'advanced') {
+        <section class="engine-guide__panel">
+          <header class="engine-guide__advanced-header">
+            <div>
+              <h3>{{ copy().advancedActions }}</h3>
+              <p>{{ copy().childSubtitle }}</p>
+            </div>
+
+            <div class="engine-guide__advanced-actions">
+              <button type="button" (click)="toggleScratchSlice()">
+                {{ copy().scratch }}
+              </button>
+              <button type="button" (click)="toggleChildDemo()">
+                {{ copy().child }}
+              </button>
+            </div>
+          </header>
+
+          @if (state().childDemoVisible) {
+            <section class="engine-guide__child">
+              <header>
+                <h3>{{ copy().childTitle }}</h3>
+              </header>
+
+              <<%= prefix || "app" %>-<%= fileName %>-child-demo
+                [core]="facade.childDemoCore"
+                [lang]="state().lang"
+              />
+            </section>
+          }
+        </section>
+      }
+    </section>
+
+    <section class="engine-guide__right">
+      <div class="engine-guide__runtime-label">{{ runtimePanelLabel() }}</div>
+      <section class="engine-guide__panel">
+        <div
+          [uiEngineSlot]="composition.slotIds.diagnostics"
+          [pluggable]="composition.slots.diagnostics"
+          [facade]="facade.engineFacade"
+        ></div>
+      </section>
+    </section>
+  </section>
+</article>

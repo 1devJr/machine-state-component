@@ -1,0 +1,12 @@
+<div class="input-pluggable">
+  <input
+    type="text"
+    [value]="localQuery()"
+    [placeholder]="mergedConfig().placeholder"
+    (input)="updateQuery($any($event.target).value)"
+  />
+
+  <button type="button" (click)="submit()">
+    {{ mergedConfig().buttonLabel }}
+  </button>
+</div>

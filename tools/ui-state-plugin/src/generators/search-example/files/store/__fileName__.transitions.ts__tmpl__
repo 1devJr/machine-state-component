@@ -1,0 +1,67 @@
+import { defineKernelTransitions } from '@machine-state-component/ui-state';
+import { <%= propertyName %>Actions } from './<%= fileName %>.actions';
+import {
+  create<%= className %>InitialState,
+  <%= className %>State,
+} from './<%= fileName %>.types';
+
+export function create<%= className %>Transitions() {
+  return defineKernelTransitions<<%= className %>State>()(
+    <%= propertyName %>Actions,
+    ({ chain, actions }) =>
+      chain()
+        .globalOn(actions.queryChanged, (state, event) => ({
+          ...state,
+          query: event.query,
+          errorMessage: null,
+        }))
+        .globalOn(actions.submit, (state) => ({
+          ...state,
+          status: 'loading',
+          errorMessage: null,
+        }))
+        .globalOn(actions.loading, (state) => ({
+          ...state,
+          status: 'loading',
+          errorMessage: null,
+        }))
+        .globalOn(actions.success, (state, event) => ({
+          ...state,
+          status: 'ready',
+          results: event.results,
+          errorMessage: null,
+        }))
+        .globalOn(actions.error, (state, event) => ({
+          ...state,
+          status: 'error',
+          results: [],
+          errorMessage: event.message,
+        }))
+        .globalOn(actions.selectItem, (state, event) => ({
+          ...state,
+          selectedItemName: event.name,
+          detailsStatus: 'loading',
+          detailsErrorMessage: null,
+        }))
+        .globalOn(actions.detailsLoading, (state, event) => ({
+          ...state,
+          selectedItemName: event.name,
+          detailsStatus: 'loading',
+          detailsErrorMessage: null,
+        }))
+        .globalOn(actions.detailsSuccess, (state, event) => ({
+          ...state,
+          detailsStatus: 'ready',
+          selectedItemDetails: event.details,
+          detailsErrorMessage: null,
+        }))
+        .globalOn(actions.detailsError, (state, event) => ({
+          ...state,
+          detailsStatus: 'error',
+          selectedItemDetails: null,
+          detailsErrorMessage: event.message,
+        }))
+        .globalOn(actions.reset, () => create<%= className %>InitialState())
+        .done(),
+  );
+}

@@ -1,0 +1,20 @@
+<section class="controls-panel">
+  <header class="controls-panel__header">
+    <h3>{{ copy().title }}</h3>
+    <p>{{ copy().subtitle }}</p>
+  </header>
+
+  <div class="controls-panel__actions">
+    <button type="button" class="controls-panel__button" (click)="runSuccess()">
+      {{ copy().successLabel }}
+    </button>
+    <button type="button" class="controls-panel__button" (click)="runError()">
+      {{ copy().errorLabel }}
+    </button>
+    <button type="button" class="controls-panel__button" (click)="reset()">
+      {{ copy().resetLabel }}
+    </button>
+  </div>
+
+  <p class="controls-panel__hint">{{ copy().hint }}</p>
+</section>

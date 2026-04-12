@@ -1,0 +1,8 @@
+{
+  "name": "machine-state-engine-plugin",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "root": "tools/ui-state-plugin",
+  "sourceRoot": "tools/ui-state-plugin/src",
+  "projectType": "library",
+  "targets": {}
+}
