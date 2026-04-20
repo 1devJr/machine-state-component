@@ -26,13 +26,13 @@ export function createHookRegistry<
     },
 
     runBefore(state, event) {
-      for (const hook of hooks) {
+      for (const hook of [...hooks]) {
         hook.onBeforeTransition?.(state, event);
       }
     },
 
     runAfter(state, event) {
-      for (const hook of hooks) {
+      for (const hook of [...hooks]) {
         hook.onAfterTransition?.(state, event);
       }
     },

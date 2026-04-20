@@ -75,6 +75,9 @@ export class EngineFacade<
     this.#effectsRuntime = new EngineEffectsRuntime(
       this.#effectRegistry,
       config.services,
+      {
+        onEffectError: config.onEffectError,
+      },
     );
 
     this.#hookRegistry.register({
@@ -223,7 +226,7 @@ export class EngineFacade<
     actions: TActions,
     events?: TEvents,
   ): ConnectionPort<TActions, TEvents, TState> {
-    const eventCatalog = events ?? (actions as unknown as TEvents);
+    const eventCatalog = (events ?? actions) as TEvents;
 
     return {
       actions,
@@ -232,7 +235,9 @@ export class EngineFacade<
         this.commands.dispatch(event as TEvent);
       },
       subscribe: (listener) =>
-        this.subscribeEvents((event) => listener(event as never)),
+        this.subscribeEvents((event) =>
+          listener(event as ReturnType<TEvents[keyof TEvents]>),
+        ),
       getState: () => this.commands.getStateSnapshot(),
       registerSlice: (sliceKey, initialState) =>
         this.registerSlice(sliceKey, initialState),

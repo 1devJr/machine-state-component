@@ -1,0 +1,43 @@
+import { defineActionCatalog } from '@machine-state-component/ui-state';
+import { <%= className %>LearningMode } from './<%= fileName %>.types';
+
+export const <%= propertyName %>ActionCatalog = defineActionCatalog({
+  setLearningMode: {
+    type: '<%= fileName %>/setLearningMode',
+    payload: (mode: <%= className %>LearningMode) => ({ mode }),
+  },
+  runDemoAction: {
+    type: '<%= fileName %>/runDemoAction',
+    payload: (label: string) => ({ label }),
+  },
+  demoCompleted: {
+    type: '<%= fileName %>/demoCompleted',
+    payload: (message: string) => ({ message }),
+  },
+  simulateError: {
+    type: '<%= fileName %>/simulateError',
+    payload: (severity: 'soft' | 'hard') => ({ severity }),
+  },
+  toggleScratchSlice: {
+    type: '<%= fileName %>/toggleScratchSlice',
+  },
+  toggleChildDemo: {
+    type: '<%= fileName %>/toggleChildDemo',
+  },
+  toggleRawRuntimeData: {
+    type: '<%= fileName %>/toggleRawRuntimeData',
+  },
+  setDiagnosticMessage: {
+    type: '<%= fileName %>/setDiagnosticMessage',
+    payload: (message: string) => ({ message }),
+  },
+  toggleLang: {
+    type: '<%= fileName %>/toggleLang',
+  },
+  reset: {
+    type: '<%= fileName %>/reset',
+  },
+});
+
+export const <%= propertyName %>Actions = <%= propertyName %>ActionCatalog.creators;
+export const <%= propertyName %>ActionTypes = <%= propertyName %>ActionCatalog.types;

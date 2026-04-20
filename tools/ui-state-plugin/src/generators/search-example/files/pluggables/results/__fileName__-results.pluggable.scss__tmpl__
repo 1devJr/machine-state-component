@@ -1,0 +1,26 @@
+.results-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+button {
+  width: 100%;
+  border: 2px solid #202020;
+  border-radius: 0.85rem;
+  padding: 0.7rem 0.9rem;
+  background: #f8f8f8;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.is-active {
+  background: #dff0ff;
+}
+
+.results-empty {
+  margin: 0;
+  color: #4b5563;
+}

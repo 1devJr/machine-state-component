@@ -1,0 +1,143 @@
+import { EngineState } from '@machine-state-component/ui-state';
+
+export type <%= className %>Status = 'idle' | 'loading' | 'ready' | 'error';
+export type <%= className %>LearningMode = 'flow' | 'files' | 'advanced';
+export type <%= className %>DocLang = 'pt-br' | 'en';
+
+export interface <%= className %>TimelineEntry {
+  id: number;
+  type: string;
+  summary: string;
+}
+
+export interface <%= className %>ActionCountEntry {
+  type: string;
+  count: number;
+}
+
+export interface <%= className %>FileRuleCard {
+  id: string;
+  fileName: string;
+  title: string;
+  purpose: string;
+  belongs: string[];
+  avoid: string[];
+  symbols: string[];
+  composedSymbols?: string[];
+  testIdeas: string[];
+  note?: string;
+}
+
+export interface <%= className %>AdvancedFeatureLink {
+  label: string;
+  to: string;
+}
+
+export interface <%= className %>AdvancedFeatureCard {
+  id: string;
+  title: string;
+  summary: string;
+  bullets: string[];
+  codeExample?: string;
+  links?: <%= className %>AdvancedFeatureLink[];
+  note?: string;
+}
+
+export interface <%= className %>ControlsConfig {
+  title: string;
+  subtitle: string;
+  successLabel: string;
+  errorLabel: string;
+  resetLabel: string;
+}
+
+export interface <%= className %>FlowSummary {
+  action: string;
+  transition: string;
+  effect: string;
+  changedFields: string[];
+  message: string;
+}
+
+export interface <%= className %>DiagnosticsConfig {
+  getEventTimeline: () => readonly <%= className %>TimelineEntry[];
+  getStateSnapshot: () => Record<string, unknown>;
+  getSelectionSnapshot: () => Record<string, unknown>;
+  getSliceKeys: () => readonly string[];
+  getEffects: () => ReadonlyArray<{
+    id: string;
+    event: string;
+    priority: number;
+  }>;
+  getFlowSummary: () => <%= className %>FlowSummary;
+}
+
+export interface <%= className %>DocsConfig {
+  fileRules: <%= className %>FileRuleCard[];
+  fileRulesPtBr?: <%= className %>FileRuleCard[];
+  advancedFeatures: <%= className %>AdvancedFeatureCard[];
+  advancedFeaturesPtBr?: <%= className %>AdvancedFeatureCard[];
+}
+
+export interface <%= className %>RuntimeBridge {
+  toggleScratchSlice: () => void;
+}
+
+export interface <%= className %>Services {
+  [key: string]: unknown;
+  demoApi: {
+    wait: (durationMs?: number) => Promise<void>;
+    buildCompletionMessage: (
+      label: string,
+      lang: <%= className %>DocLang,
+    ) => string;
+    buildErrorMessage: (
+      severity: 'soft' | 'hard',
+      lang: <%= className %>DocLang,
+    ) => string;
+  };
+  runtimeBridge: <%= className %>RuntimeBridge;
+}
+
+export interface <%= className %>State
+  extends EngineState<<%= className %>Status> {
+  lang: <%= className %>DocLang;
+  learningMode: <%= className %>LearningMode;
+  showRawRuntimeData: boolean;
+  lastUserActionType: string | null;
+  lastDispatchedType: string | null;
+  lastTransitionLabel: string;
+  lastChangedFields: string[];
+  actionCountByType: Record<string, number>;
+  diagnosticMessage: string;
+  childDemoVisible: boolean;
+  scratchSliceMounted: boolean;
+}
+
+export function get<%= className %>InitialDiagnosticMessage(
+  lang: <%= className %>DocLang,
+): string {
+  return lang === 'pt-br'
+    ? 'Dispare uma acao e acompanhe como transition, effect e selections reagem em sequencia.'
+    : 'Dispatch an action and watch how transition, effect and selections react in sequence.';
+}
+
+export function create<%= className %>InitialState(
+  lang: <%= className %>DocLang = 'pt-br',
+): <%= className %>State {
+  return {
+    status: 'idle',
+    lang,
+    learningMode: 'flow',
+    showRawRuntimeData: false,
+    lastUserActionType: null,
+    lastDispatchedType: null,
+    lastTransitionLabel:
+      lang === 'pt-br' ? 'Estado inicial do core.' : 'Initial core state.',
+    lastChangedFields: [],
+    actionCountByType: {},
+    diagnosticMessage: get<%= className %>InitialDiagnosticMessage(lang),
+    childDemoVisible: false,
+    scratchSliceMounted: false,
+  };
+}

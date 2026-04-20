@@ -1,0 +1,14 @@
+import { defineActionCatalog } from '@machine-state-component/ui-state';
+
+export const <%= propertyName %>ChildDemoActionCatalog = defineActionCatalog({
+  recordParentEvent: {
+    type: '<%= fileName %>-child-demo/recordParentEvent',
+    payload: (eventType: string, note: string) => ({ eventType, note }),
+  },
+  clear: {
+    type: '<%= fileName %>-child-demo/clear',
+  },
+});
+
+export const <%= propertyName %>ChildDemoActions =
+  <%= propertyName %>ChildDemoActionCatalog.creators;

@@ -1,0 +1,79 @@
+import {
+  createComposition,
+  createCoreArtifact,
+  defineCompositionSchema,
+  requiredSlot,
+} from '@machine-state-component/ui-state';
+import { <%= className %>DetailsPluggableComponent } from '../pluggables/details/<%= fileName %>-details.pluggable';
+import { <%= className %>InputPluggableComponent } from '../pluggables/input/<%= fileName %>-input.pluggable';
+import { <%= className %>ResultsPluggableComponent } from '../pluggables/results/<%= fileName %>-results.pluggable';
+import {
+  <%= className %>DetailsConfig,
+  <%= className %>InputConfig,
+  <%= className %>ResultsConfig,
+  <%= className %>Services,
+} from './<%= fileName %>.types';
+import { <%= propertyName %>Kernel } from './<%= fileName %>.kernel';
+
+export const <%= propertyName %>CompositionSchema = defineCompositionSchema({
+  input: requiredSlot<<%= className %>InputConfig>(),
+  results: requiredSlot<<%= className %>ResultsConfig>(),
+  details: requiredSlot<<%= className %>DetailsConfig>(),
+});
+
+const <%= propertyName %>Composition = createComposition(
+  <%= propertyName %>CompositionSchema,
+)
+  .withSlot(
+    'input',
+    <%= className %>InputPluggableComponent,
+    {
+      placeholder: 'Search for result-1, result-2 or result-3',
+      buttonLabel: 'Search',
+    },
+    {
+      sliceInitialState: {
+        lastSubmittedTerm: null as string | null,
+        submitCount: 0,
+      },
+    },
+  )
+  .withSlot(
+    'results',
+    <%= className %>ResultsPluggableComponent,
+    {
+      emptyMessage: 'Type a term and run the search.',
+    },
+    {
+      sliceInitialState: {
+        highlighted: null as string | null,
+        totalRendered: 0,
+      },
+    },
+  )
+  .withSlot(
+    'details',
+    <%= className %>DetailsPluggableComponent,
+    {
+      emptyMessage: 'Select a result to load the details.',
+    },
+    {
+      sliceInitialState: {
+        activeTab: 'overview' as 'overview' | 'meta',
+      },
+    },
+  )
+  .build();
+
+export function create<%= className %>Artifact(
+  dataApi: <%= className %>Services['dataApi'],
+) {
+  return createCoreArtifact(<%= propertyName %>Kernel, {
+    services: {
+      dataApi,
+    },
+    composition: () => <%= propertyName %>Composition,
+  });
+}
+
+export type <%= className %>Artifact = ReturnType<typeof create<%= className %>Artifact>;

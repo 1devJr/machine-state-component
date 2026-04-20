@@ -1,3 +1,4 @@
+import type { Signal } from '@angular/core';
 import { describe, expect, it } from 'vitest';
 import {
   createComposition,
@@ -181,7 +182,7 @@ describe('createComposedEngine', () => {
           }),
         ],
       ),
-      selections: defineSelections((state) => ({
+      selections: defineSelections((state: Signal<MovieSearchState>) => ({
         query: () => state().query,
         results: () => state().results,
       })),
@@ -268,7 +269,7 @@ describe('createComposedEngine', () => {
         movieActions.creators,
         () => [],
       ),
-      selections: defineSelections((state) => ({
+      selections: defineSelections((state: Signal<MovieSearchState>) => ({
         status: () => state().status,
       })),
       services: defineServices<MovieServices>({

@@ -63,4 +63,20 @@ describe('EngineDevToolsState', () => {
     api.clearHistory();
     expect(devtools.history().length).toBe(0);
   });
+
+  it('não acumula histórico quando enable=false', () => {
+    const devtools = new EngineDevToolsState<State, Status, Event>({
+      enable: false,
+      instanceName: 'disabled-engine',
+    });
+
+    devtools.logTransition(
+      { type: 'ignored' },
+      { status: 'idle', value: 0 },
+      { status: 'ready', value: 1 },
+    );
+
+    expect(devtools.history()).toEqual([]);
+    expect(devtools.metrics().totalTransitions).toBe(0);
+  });
 });

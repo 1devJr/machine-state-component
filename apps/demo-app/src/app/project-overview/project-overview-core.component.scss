@@ -1,0 +1,28 @@
+:host {
+  display: block;
+}
+
+.core-example {
+  display: grid;
+  gap: 1rem;
+}
+
+.core-example__header,
+.core-example__panel,
+.core-example__notice {
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.core-example__header h2,
+.core-example__header p {
+  margin: 0;
+}
+
+.core-example__header p {
+  margin-top: 0.35rem;
+  color: #4b5563;
+  line-height: 1.55;
+}

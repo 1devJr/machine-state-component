@@ -1,0 +1,27 @@
+import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { definePluggableStoreArtifacts } from '@machine-state-component/ui-state';
+import { PluggableBase } from '../../store/<%= fileName %>.kernel';
+import { <%= className %>DetailsConfig } from '../../store/<%= fileName %>.types';
+
+@Component({
+  selector: 'app-<%= fileName %>-details-pluggable',
+  standalone: true,
+  templateUrl: './<%= fileName %>-details.pluggable.html',
+  styleUrl: './<%= fileName %>-details.pluggable.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class <%= className %>DetailsPluggableComponent extends PluggableBase<<%= className %>DetailsConfig> {
+  static readonly storeArtifacts = definePluggableStoreArtifacts({});
+
+  readonly details = computed(() => this.state()?.selectedItemDetails ?? null);
+  readonly detailsStatus = computed(() => this.state()?.detailsStatus ?? 'idle');
+  readonly detailsErrorMessage = computed(
+    () => this.state()?.detailsErrorMessage ?? null,
+  );
+
+  protected override getDefaultConfig(): <%= className %>DetailsConfig {
+    return {
+      emptyMessage: 'Select a result to inspect its details.',
+    };
+  }
+}

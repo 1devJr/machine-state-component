@@ -1,0 +1,25 @@
+{
+  "$schema": "../../node_modules/nx/schemas/nx-plugin-schema.json",
+  "name": "Machine State Component Workspace Generators",
+  "version": "0.0.0",
+  "generators": {
+    "core-component": {
+      "factory": "./src/generators/core-component/generator",
+      "schema": "./src/generators/core-component/schema.json",
+      "aliases": ["core"],
+      "description": "Generate the standard composed core scaffold used as the base reference for engine features."
+    },
+    "live-docs-component": {
+      "factory": "./src/generators/live-docs-component/generator",
+      "schema": "./src/generators/live-docs-component/schema.json",
+      "aliases": ["live-docs"],
+      "description": "Generate a live documentation page with a Task Manager example, Mermaid diagrams and guided source tabs."
+    },
+    "search-example": {
+      "factory": "./src/generators/search-example/generator",
+      "schema": "./src/generators/core-component/schema.json",
+      "aliases": ["search"],
+      "description": "Generate the search-oriented example scaffold used as a reference implementation."
+    }
+  }
+}

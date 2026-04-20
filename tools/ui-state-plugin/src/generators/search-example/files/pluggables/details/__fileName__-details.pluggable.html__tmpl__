@@ -1,0 +1,22 @@
+@if (details()) {
+  <article class="details-panel">
+    <header>
+      <h4>{{ details()!.title }}</h4>
+      <span>#{{ details()!.id }}</span>
+    </header>
+
+    <p>{{ details()!.description }}</p>
+
+    <ul class="details-tags">
+      @for (tag of details()!.tags; track tag) {
+        <li>{{ tag }}</li>
+      }
+    </ul>
+  </article>
+} @else if (detailsErrorMessage()) {
+  <p class="details-error">{{ detailsErrorMessage() }}</p>
+} @else {
+  <p class="details-empty">{{ mergedConfig().emptyMessage }}</p>
+}
+
+<p class="details-status">Status: {{ detailsStatus() }}</p>

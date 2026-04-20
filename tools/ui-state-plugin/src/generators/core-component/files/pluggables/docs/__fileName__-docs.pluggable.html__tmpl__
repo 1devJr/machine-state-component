@@ -1,0 +1,127 @@
+@if (learningMode() === 'files') {
+  <section class="docs-panel">
+    <header class="docs-panel__header">
+      <h3>{{ copy().filesTitle }}</h3>
+      <p>{{ copy().filesSubtitle }}</p>
+    </header>
+
+    <div class="docs-panel__stack">
+      @for (rule of fileRules(); track rule.id) {
+        <article class="docs-panel__card">
+          <header class="docs-panel__card-header">
+            <div>
+              <p>{{ rule.fileName }}</p>
+              <h4>{{ rule.title }}</h4>
+            </div>
+            <span>{{ rule.purpose }}</span>
+          </header>
+
+          <div class="docs-panel__grid">
+            <section>
+              <h5>{{ copy().purpose }}</h5>
+              <ul>
+                @for (item of rule.belongs; track item) {
+                  <li>{{ item }}</li>
+                }
+              </ul>
+            </section>
+
+            <section>
+              <h5>{{ copy().avoid }}</h5>
+              <ul>
+                @for (item of rule.avoid; track item) {
+                  <li>{{ item }}</li>
+                }
+              </ul>
+            </section>
+          </div>
+
+          <section>
+            <h5>{{ copy().symbols }}</h5>
+            <div class="docs-panel__chips">
+              @for (symbol of rule.symbols; track symbol) {
+                <span>{{ symbol }}</span>
+              }
+            </div>
+          </section>
+
+          @if (rule.composedSymbols?.length) {
+            <section>
+              <h5>{{ copy().composedSymbols }}</h5>
+              <div class="docs-panel__chips">
+                @for (symbol of rule.composedSymbols; track symbol) {
+                  <span>{{ symbol }}</span>
+                }
+              </div>
+            </section>
+          }
+
+          <section>
+            <h5>{{ copy().tests }}</h5>
+            <ul>
+              @for (item of rule.testIdeas; track item) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          </section>
+
+          @if (rule.note) {
+            <section>
+              <h5>{{ copy().note }}</h5>
+              <p>{{ rule.note }}</p>
+            </section>
+          }
+        </article>
+      }
+    </div>
+  </section>
+} @else if (learningMode() === 'advanced') {
+  <section class="docs-panel">
+    <header class="docs-panel__header">
+      <h3>{{ copy().advancedTitle }}</h3>
+      <p>{{ copy().advancedSubtitle }}</p>
+    </header>
+
+    <div class="docs-panel__stack">
+      @for (feature of advancedFeatures(); track feature.id) {
+        <article class="docs-panel__card">
+          <header class="docs-panel__card-header">
+            <div>
+              <p>{{ feature.id }}</p>
+              <h4>{{ feature.title }}</h4>
+            </div>
+            <span>{{ feature.summary }}</span>
+          </header>
+
+          <ul>
+            @for (bullet of feature.bullets; track bullet) {
+              <li>{{ bullet }}</li>
+            }
+          </ul>
+
+          @if (feature.codeExample) {
+            <section>
+              <h5>{{ copy().codeExample }}</h5>
+              <pre><code>{{ feature.codeExample }}</code></pre>
+            </section>
+          }
+
+          @if (feature.links?.length) {
+            <div class="docs-panel__links">
+              @for (link of feature.links; track link.to) {
+                <a [routerLink]="link.to">{{ link.label }}</a>
+              }
+            </div>
+          }
+
+          @if (feature.note) {
+            <section>
+              <h5>{{ copy().note }}</h5>
+              <p>{{ feature.note }}</p>
+            </section>
+          }
+        </article>
+      }
+    </div>
+  </section>
+}

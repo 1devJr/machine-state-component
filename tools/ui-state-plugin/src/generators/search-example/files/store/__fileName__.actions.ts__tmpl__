@@ -1,0 +1,45 @@
+import { defineActionCatalog } from '@machine-state-component/ui-state';
+import { <%= className %>Details } from './<%= fileName %>.types';
+
+export const <%= propertyName %>ActionCatalog = defineActionCatalog({
+  queryChanged: {
+    type: '<%= fileName %>/queryChanged',
+    payload: (query: string) => ({ query }),
+  },
+  submit: {
+    type: '<%= fileName %>/submit',
+  },
+  loading: {
+    type: '<%= fileName %>/loading',
+  },
+  success: {
+    type: '<%= fileName %>/success',
+    payload: (results: string[]) => ({ results }),
+  },
+  error: {
+    type: '<%= fileName %>/error',
+    payload: (message: string) => ({ message }),
+  },
+  selectItem: {
+    type: '<%= fileName %>/selectItem',
+    payload: (name: string) => ({ name }),
+  },
+  detailsLoading: {
+    type: '<%= fileName %>/detailsLoading',
+    payload: (name: string) => ({ name }),
+  },
+  detailsSuccess: {
+    type: '<%= fileName %>/detailsSuccess',
+    payload: (details: <%= className %>Details) => ({ details }),
+  },
+  detailsError: {
+    type: '<%= fileName %>/detailsError',
+    payload: (message: string) => ({ message }),
+  },
+  reset: {
+    type: '<%= fileName %>/reset',
+  },
+});
+
+export const <%= propertyName %>Actions = <%= propertyName %>ActionCatalog.creators;
+export const <%= propertyName %>ActionTypes = <%= propertyName %>ActionCatalog.types;

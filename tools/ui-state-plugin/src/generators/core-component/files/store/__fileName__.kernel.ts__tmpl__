@@ -1,0 +1,25 @@
+import {
+  defineCoreKernel,
+  defineStore,
+} from '@machine-state-component/ui-state';
+import { <%= propertyName %>Actions } from './<%= fileName %>.actions';
+import { create<%= className %>Effects } from './<%= fileName %>.effects';
+import { create<%= className %>Selections } from './<%= fileName %>.selections';
+import { create<%= className %>Transitions } from './<%= fileName %>.transitions';
+import {
+  create<%= className %>InitialState,
+  <%= className %>State,
+} from './<%= fileName %>.types';
+
+export const <%= propertyName %>Kernel = defineCoreKernel({
+  id: '<%= fileName %>-core',
+  store: defineStore<<%= className %>State>({
+    initialState: create<%= className %>InitialState(),
+  }),
+  actions: <%= propertyName %>Actions,
+  transitions: create<%= className %>Transitions(),
+  effects: create<%= className %>Effects(),
+  selections: create<%= className %>Selections(),
+});
+
+export const PluggableBase = <%= propertyName %>Kernel.PluggableBase;

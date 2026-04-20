@@ -20,6 +20,7 @@ import type {
   CoreTransitions,
   CoreTransitionDefinition,
   CreateCoreArtifactInput,
+  KernelSelections,
   KernelState,
   TransitionChain,
 } from '../types/core';
@@ -208,15 +209,20 @@ export function defineKernelEffects<
 export function createCoreArtifact<
   TKernel extends AnyCoreKernel,
   TComposition extends CompositionWithConnections,
+  TSelections extends Record<string, unknown> = KernelSelections<TKernel>,
 >(
   kernel: TKernel,
-  input: CreateCoreArtifactInput<TKernel, TComposition>,
-): CoreArtifactFromKernel<TKernel, TComposition> {
+  input: CreateCoreArtifactInput<TKernel, TComposition, TSelections>,
+): CoreArtifactFromKernel<TKernel, TComposition, TSelections> {
   const selections = (input.selections ??
     ((state) =>
       kernel.selections(
         state as unknown as Signal<KernelState<TKernel>>,
-      ))) as CoreArtifactFromKernel<TKernel, TComposition>['selections'];
+      ))) as CoreArtifactFromKernel<
+    TKernel,
+    TComposition,
+    TSelections
+  >['selections'];
 
   return {
     id: kernel.id,
@@ -228,6 +234,10 @@ export function createCoreArtifact<
     composition: input.composition,
     services: (input.services ??
       kernel.services ??
-      {}) as CoreArtifactFromKernel<TKernel, TComposition>['services'],
+      {}) as CoreArtifactFromKernel<
+      TKernel,
+      TComposition,
+      TSelections
+    >['services'],
   };
 }

@@ -1,0 +1,18 @@
+import type { Signal } from '@angular/core';
+import { defineSelections } from '@machine-state-component/ui-state';
+import { <%= className %>State } from './<%= fileName %>.types';
+
+export function create<%= className %>Selections() {
+  return defineSelections((state: Signal<<%= className %>State>) => ({
+    currentStatus: () => state().status,
+    lastActionType: () => state().lastUserActionType,
+    actionCountEntries: () =>
+      Object.entries(state().actionCountByType).map(([type, count]) => ({
+        type,
+        count,
+      })),
+    learningMode: () => state().learningMode,
+    showRawRuntimeData: () => state().showRawRuntimeData,
+    diagnosticMessage: () => state().diagnosticMessage,
+  }));
+}

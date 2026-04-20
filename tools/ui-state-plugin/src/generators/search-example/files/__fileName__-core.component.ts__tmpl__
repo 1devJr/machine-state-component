@@ -1,0 +1,38 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+} from '@angular/core';
+import { EngineSlotDirective } from '@machine-state-component/ui-state';
+import { <%= className %>FacadeService } from './facade/<%= fileName %>-facade.service';
+
+@Component({
+  selector: '<%= selector %>',
+  standalone: true,
+  imports: [EngineSlotDirective],
+  providers: [<%= className %>FacadeService],
+  templateUrl: './<%= fileName %>-core.component.html',
+  styleUrl: './<%= fileName %>-core.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class <%= className %>CoreComponent {
+  readonly facade = inject(<%= className %>FacadeService);
+
+  readonly state = this.facade.state;
+  readonly status = this.facade.status;
+  readonly selections = this.facade.selections;
+  readonly composition = this.facade.composition;
+
+  readonly slotSummary = computed(() =>
+    JSON.stringify({
+      input: this.state().input ?? null,
+      results: this.state().results ?? null,
+      details: this.state().details ?? null,
+    }),
+  );
+
+  reset(): void {
+    this.facade.actions.reset();
+  }
+}

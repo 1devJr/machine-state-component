@@ -1,12 +1,17 @@
 {
-  "name": "@machine-state-component/source",
+  "name": "@machine-state/engine",
   "version": "0.0.0",
   "license": "MIT",
+  "generators": "./tools/ui-state-plugin/generators.json",
+  "schematics": "./tools/ui-state-plugin/generators.json",
   "scripts": {
     "start": "NX_DAEMON=false NX_ISOLATE_PLUGINS=false nx serve demo-app --host=127.0.0.1 --port=4202",
     "build": "NX_DAEMON=false NX_ISOLATE_PLUGINS=false nx build demo-app",
     "test": "NX_DAEMON=false NX_ISOLATE_PLUGINS=false nx test ui-state",
     "lint": "NX_DAEMON=false NX_ISOLATE_PLUGINS=false nx run-many -t lint -p ui-state,demo-app",
+    "gen:core": "NX_DAEMON=false NX_ISOLATE_PLUGINS=false nx g @machine-state/engine:core",
+    "gen:live-docs": "NX_DAEMON=false NX_ISOLATE_PLUGINS=false nx g @machine-state/engine:live-docs",
+    "gen:search-example": "NX_DAEMON=false NX_ISOLATE_PLUGINS=false nx g @machine-state/engine:search-example",
     "format": "NX_DAEMON=false NX_ISOLATE_PLUGINS=false nx format:write",
     "prepare": "husky"
   },
@@ -23,6 +28,7 @@
     "@angular/router": "~21.0.0",
     "@angular/ssr": "~21.0.0",
     "express": "^4.21.2",
+    "mermaid": "^11.13.0",
     "rxjs": "~7.8.0",
     "zone.js": "^0.16.0"
   },

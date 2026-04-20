@@ -1,5 +1,12 @@
 import { JsonPipe } from '@angular/common';
-import { Component, computed, effect, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  input,
+  signal,
+} from '@angular/core';
 import {
   EngineDevtoolsOverlayPayload,
   EngineDevtoolsOverlaySide,
@@ -63,7 +70,7 @@ import {
 
               @if (section.kind === 'list') {
                 <ul>
-                  @for (item of section.items; track item.title + item.meta) {
+                  @for (item of section.items; track $index) {
                     <li>
                       <strong>{{ item.title }}</strong>
                       @if (item.subtitle) {
@@ -239,6 +246,7 @@ import {
       }
     `,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EngineDevtoolsOverlayComponent {
   readonly enabled = input<boolean>(false);

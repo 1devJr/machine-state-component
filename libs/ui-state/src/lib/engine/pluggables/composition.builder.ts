@@ -46,7 +46,7 @@ export class CompositionBuilder {
   ): this {
     this.#slots.set(slot, {
       ...createPluggableConfig(
-        options?.id ?? `${slot}-${component.name}`,
+        options?.id ?? `${slot}-pluggable`,
         component,
         config,
       ),
@@ -195,29 +195,37 @@ function createConnectionLink<
 ): ConnectionLink<TSourceCreator, TTargetCreator> {
   const sourceType = source.actionType as ReturnType<TSourceCreator>['type'];
   const targetType = target.actionType as ReturnType<TTargetCreator>['type'];
-
-  return {
+  const projectPayload = (event: ReturnType<TSourceCreator>) => {
+    const payload = { ...(event as Record<string, unknown>) };
+    delete payload['type'];
+    return payload as EventPayload<ReturnType<TTargetCreator>>;
+  };
+  const resolveWithMapper = (
+    mapper: (
+      event: ReturnType<TSourceCreator>,
+    ) => EventPayload<ReturnType<TTargetCreator>>,
+  ) => new ResolvedConnectionLink(source, target, mapper);
+  const link = {
     source,
     target,
     sourceType,
     targetType,
-    map: ((input: unknown) => {
-      if (typeof input === 'function') {
-        return new ResolvedConnectionLink(
-          source,
-          target,
-          input as (
+    map: (
+      input:
+        | ((
             event: ReturnType<TSourceCreator>,
-          ) => EventPayload<ReturnType<TTargetCreator>>,
-        );
+          ) => EventPayload<ReturnType<TTargetCreator>>)
+        | EngineEvent,
+    ) => {
+      if (typeof input === 'function') {
+        return resolveWithMapper(input);
       }
 
-      const sourceEvent = input as ReturnType<TSourceCreator>;
-      const payload = { ...(sourceEvent as Record<string, unknown>) };
-      delete payload['type'];
-      return payload;
-    }) as unknown,
-  } as unknown as ConnectionLink<TSourceCreator, TTargetCreator>;
+      return projectPayload(input as ReturnType<TSourceCreator>);
+    },
+  };
+
+  return link as ConnectionLink<TSourceCreator, TTargetCreator>;
 }
 
 export function defineCompositionSchema<
@@ -344,7 +352,7 @@ export class TypedCompositionBuilder<
 
     this.#slots.set(slot, {
       ...createPluggableConfig(
-        options?.id ?? `${String(slot)}-${component.name}`,
+        options?.id ?? `${String(slot)}-pluggable`,
         component,
         config,
       ),
@@ -677,15 +685,44 @@ export class TypedCompositionBuilder<
           projection.initialState as Record<string, unknown>,
         );
 
+        let lastProjection = projection.initialState as Record<string, unknown>;
+
+        const isSameProjection = (
+          left: Record<string, unknown>,
+          right: Record<string, unknown>,
+        ) => {
+          const leftKeys = Object.keys(left);
+          const rightKeys = Object.keys(right);
+
+          if (leftKeys.length !== rightKeys.length) {
+            return false;
+          }
+
+          for (const key of leftKeys) {
+            if (!Object.is(left[key], right[key])) {
+              return false;
+            }
+          }
+
+          return true;
+        };
+
         const updateProjection = () => {
           const nextChildState = childPort.getState?.();
           if (!nextChildState) {
             return;
           }
-          parentPort.setSliceState?.(
-            projectionSliceKey,
-            projection.select(nextChildState) as Record<string, unknown>,
-          );
+          const nextProjection = projection.select(nextChildState) as Record<
+            string,
+            unknown
+          >;
+
+          if (isSameProjection(lastProjection, nextProjection)) {
+            return;
+          }
+
+          lastProjection = nextProjection;
+          parentPort.setSliceState?.(projectionSliceKey, nextProjection);
         };
 
         updateProjection();

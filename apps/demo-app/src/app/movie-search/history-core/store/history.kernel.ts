@@ -1,3 +1,4 @@
+import type { Signal } from '@angular/core';
 import {
   defineCoreKernel,
   defineKernelEffects,
@@ -75,7 +76,7 @@ export const historyKernel = defineCoreKernel({
         .done(),
   ),
   effects: defineKernelEffects<HistoryState>()(historyActions, () => []),
-  selections: defineSelections((state) => ({
+  selections: defineSelections((state: Signal<HistoryState>) => ({
     recentTerms: () => state().recentTerms,
     topTerms: () => state().topTerms,
     totalSearches: () => state().totalSearches,

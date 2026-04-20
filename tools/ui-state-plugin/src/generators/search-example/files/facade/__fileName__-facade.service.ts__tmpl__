@@ -1,0 +1,28 @@
+import { inject, Injectable, OnDestroy } from '@angular/core';
+import {
+  createComposedEngine,
+  createFacadeBindings,
+} from '@machine-state-component/ui-state';
+import { <%= className %>MockService } from '../services/<%= fileName %>.mock.service';
+import { create<%= className %>Artifact } from '../store/<%= fileName %>.artifact';
+
+@Injectable()
+export class <%= className %>FacadeService implements OnDestroy {
+  readonly #dataApi = inject(<%= className %>MockService);
+
+  readonly core = createComposedEngine(
+    create<%= className %>Artifact(this.#dataApi),
+  );
+
+  readonly bindings = createFacadeBindings(this.core);
+  readonly state = this.bindings.state;
+  readonly status = this.bindings.selections.status;
+  readonly actions = this.bindings.actions;
+  readonly selections = this.bindings.selections;
+  readonly composition = this.bindings.composition;
+  readonly engineFacade = this.bindings.engineFacade;
+
+  ngOnDestroy(): void {
+    this.bindings.destroy();
+  }
+}

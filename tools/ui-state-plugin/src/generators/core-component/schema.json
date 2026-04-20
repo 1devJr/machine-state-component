@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "title": "core-component generator",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Core component name.",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What should the core component be called?"
+    },
+    "project": {
+      "type": "string",
+      "description": "Optional Nx project used to resolve the default output directory."
+    },
+    "directory": {
+      "type": "string",
+      "description": "Optional target directory. When omitted, the generator uses the project source root or apps/demo-app/src/app."
+    },
+    "prefix": {
+      "type": "string",
+      "description": "Angular selector prefix.",
+      "default": "app"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip formatting the generated files.",
+      "default": false
+    }
+  },
+  "required": ["name"]
+}

@@ -43,6 +43,10 @@ export class EngineDevToolsState<
   }
 
   logTransition(event: TEvent, prevState: TState, nextState: TState): void {
+    if (!this.config.enable) {
+      return;
+    }
+
     const entry = createEngineLogEntry(event, prevState, nextState);
     this.#entries.update((entries) =>
       truncateEngineHistory([...entries, entry], this.config.maxHistory),

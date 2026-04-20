@@ -1,0 +1,17 @@
+@if (results().length) {
+  <ul class="results-list">
+    @for (item of results(); track item) {
+      <li>
+        <button
+          type="button"
+          [class.is-active]="selectedItem() === item"
+          (click)="selectItem(item)"
+        >
+          {{ item }}
+        </button>
+      </li>
+    }
+  </ul>
+} @else {
+  <p class="results-empty">{{ mergedConfig().emptyMessage }}</p>
+}

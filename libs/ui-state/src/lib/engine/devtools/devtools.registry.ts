@@ -1,3 +1,4 @@
+import { isDevMode } from '@angular/core';
 import { EngineDevToolsAPI, EngineDevToolsGlobal } from './devtools.types';
 
 const instances = new Map<string, EngineDevToolsAPI>();
@@ -26,7 +27,7 @@ const globalDevTools: EngineDevToolsGlobal = {
 };
 
 export function setupGlobalEngineDevTools(): void {
-  if (typeof window === 'undefined') {
+  if (typeof window === 'undefined' || !isDevMode()) {
     return;
   }
 

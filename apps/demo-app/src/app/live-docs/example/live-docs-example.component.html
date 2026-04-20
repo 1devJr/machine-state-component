@@ -1,0 +1,326 @@
+<article class="task-example">
+  <header class="task-example__header">
+    <div>
+      <h3>{{ copy().title }}</h3>
+      <p>{{ copy().subtitle }}</p>
+    </div>
+
+    <div class="task-example__status-pills">
+      <span>{{ copy().status }}: {{ runtime().status }}</span>
+      <span>{{ copy().filter }}: {{ runtime().filter }}</span>
+    </div>
+  </header>
+
+  <section class="task-example__sections">
+    <details class="task-example__section" open>
+      <summary class="task-example__section-summary">
+        <div class="task-example__section-heading">
+          <strong>{{ copy().panels.interactionTitle }}</strong>
+          <p>{{ copy().panels.interactionText }}</p>
+        </div>
+      </summary>
+
+      <div class="task-example__section-body">
+        <section class="task-example__composer">
+          <form
+            class="task-example__composer-row"
+            (submit)="saveTask($event, draftInput.value)"
+          >
+            <label class="task-example__field">
+              <span>{{ copy().draftLabel }}</span>
+              <input
+                #draftInput
+                [value]="state().draftTitle"
+                [placeholder]="copy().draftPlaceholder"
+                (input)="updateDraft($event)"
+              />
+            </label>
+
+            <button
+              type="submit"
+              class="task-example__save-button"
+              [disabled]="
+                state().status === 'saving' || !draftInput.value.trim()
+              "
+            >
+              {{ copy().saveLabel }}
+            </button>
+          </form>
+
+          @if (showPluggableShowcase()) {
+            <section class="task-example__pluggable">
+              <div
+                [uiEngineSlot]="facade.composition.slotIds.primaryAction"
+                [pluggable]="facade.composition.slots.primaryAction"
+                [facade]="facade.engineFacade"
+              ></div>
+            </section>
+          }
+        </section>
+      </div>
+    </details>
+
+    <details class="task-example__section" open>
+      <summary class="task-example__section-summary">
+        <div class="task-example__section-heading">
+          <strong>{{ copy().panels.derivedTitle }}</strong>
+          <p>{{ copy().panels.derivedText }}</p>
+        </div>
+      </summary>
+
+      <div class="task-example__section-body">
+        <section class="task-example__board">
+          <div class="task-example__filters">
+            <button
+              type="button"
+              [class.task-example__filters-button--active]="
+                state().filter === 'all'
+              "
+              (click)="facade.setFilter('all')"
+            >
+              {{ copy().filters.all }}
+            </button>
+            <button
+              type="button"
+              [class.task-example__filters-button--active]="
+                state().filter === 'open'
+              "
+              (click)="facade.setFilter('open')"
+            >
+              {{ copy().filters.open }}
+            </button>
+            <button
+              type="button"
+              [class.task-example__filters-button--active]="
+                state().filter === 'done'
+              "
+              (click)="facade.setFilter('done')"
+            >
+              {{ copy().filters.done }}
+            </button>
+          </div>
+
+          <div class="task-example__cards">
+            <section class="task-example__card">
+              <header>
+                <h4>{{ copy().tasks }}</h4>
+              </header>
+
+              @if (selections.visibleTasks().length) {
+                <ul class="task-example__task-list">
+                  @for (task of selections.visibleTasks(); track task.id) {
+                    <li
+                      class="task-example__task-item"
+                      [attr.data-status]="task.status"
+                    >
+                      <div class="task-example__task-main">
+                        <label>
+                          <input
+                            type="checkbox"
+                            [checked]="isTaskDone(task)"
+                            [disabled]="isTaskDeleted(task)"
+                            (change)="facade.toggleTask(task.id)"
+                          />
+                          <span
+                            [class.task-example__task-title--done]="
+                              isTaskDone(task)
+                            "
+                            [class.task-example__task-title--deleted]="
+                              isTaskDeleted(task)
+                            "
+                          >
+                            {{ task.title }}
+                          </span>
+                        </label>
+                        <span class="task-example__task-status">
+                          {{ taskStatusLabel(task.status) }}
+                        </span>
+                      </div>
+
+                      <div class="task-example__task-actions">
+                        @if (!isTaskDeleted(task)) {
+                          <button type="button" (click)="deleteTask(task.id)">
+                            {{ copy().delete }}
+                          </button>
+                        }
+                      </div>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="task-example__empty">{{ copy().empty }}</p>
+              }
+            </section>
+
+            <section class="task-example__card">
+              <header>
+                <h4>{{ copy().runtime }}</h4>
+              </header>
+
+              <div class="task-example__runtime-panels">
+                <section>
+                  <span>{{ copy().lastAction }}</span>
+                  <strong>{{ runtime().lastAction ?? copy().noAction }}</strong>
+                </section>
+                <section>
+                  <span>{{ copy().lastTransition }}</span>
+                  <strong>{{ runtime().lastTransition }}</strong>
+                </section>
+                <section class="task-example__runtime-panels-section--message">
+                  <span>{{ copy().feedback }}</span>
+                  <p>{{ runtime().feedback }}</p>
+                </section>
+              </div>
+
+              <dl class="task-example__runtime-metrics">
+                <div>
+                  <dt>Total</dt>
+                  <dd>{{ runtime().taskSummary.total }}</dd>
+                </div>
+                <div>
+                  <dt>Open</dt>
+                  <dd>{{ runtime().taskSummary.open }}</dd>
+                </div>
+                <div>
+                  <dt>Done</dt>
+                  <dd>{{ runtime().taskSummary.done }}</dd>
+                </div>
+                <div>
+                  <dt>{{ copy().deletedCount }}</dt>
+                  <dd>{{ runtime().taskSummary.deleted }}</dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+        </section>
+      </div>
+    </details>
+
+    <details class="task-example__section" open>
+      <summary class="task-example__section-summary">
+        <div class="task-example__section-heading">
+          <strong>{{ copy().panels.timelineTitle }}</strong>
+          <p>{{ copy().panels.timelineText }}</p>
+        </div>
+      </summary>
+
+      <div class="task-example__section-body">
+        <section class="task-example__footer">
+          <section class="task-example__card task-example__card--timeline">
+            <header>
+              <div>
+                <h4>{{ copy().timeline }}</h4>
+                <p>{{ copy().timelineScope[section()] }}</p>
+              </div>
+            </header>
+
+            @if (filteredTimeline().length) {
+              <ul class="task-example__timeline">
+                @for (entry of filteredTimeline(); track entry.id) {
+                  <li
+                    class="task-example__timeline-entry"
+                    [attr.data-kind]="entry.kind"
+                    [style.--timeline-marker-accent]="
+                      timelineMarkerColor(entry.id)
+                    "
+                  >
+                    <button
+                      type="button"
+                      class="task-example__timeline-marker-button"
+                      [class.task-example__timeline-marker-button--active]="
+                        hasTimelineMarker(entry.id)
+                      "
+                      [attr.aria-label]="
+                        hasTimelineMarker(entry.id)
+                          ? copy().changeMarker
+                          : copy().addMarker
+                      "
+                      (click)="toggleTimelineMarkerPalette(entry.id)"
+                    >
+                      <span
+                        class="task-example__timeline-marker-bookmark"
+                      ></span>
+                    </button>
+
+                    @if (isTimelineMarkerPaletteOpen(entry.id)) {
+                      <section class="task-example__timeline-marker-picker">
+                        <p>{{ copy().markerPickerTitle }}</p>
+
+                        <div class="task-example__timeline-marker-options">
+                          @for (
+                            tone of timelineMarkerOptions();
+                            track tone.id
+                          ) {
+                            <button
+                              type="button"
+                              class="task-example__timeline-marker-option"
+                              [class.task-example__timeline-marker-option--active]="
+                                timelineMarkers()[entry.id] === tone.id
+                              "
+                              [style.--timeline-marker-accent]="tone.color"
+                              [attr.aria-label]="tone.label"
+                              (click)="setTimelineMarker(entry.id, tone.id)"
+                            >
+                              <span></span>
+                            </button>
+                          }
+                        </div>
+
+                        @if (hasTimelineMarker(entry.id)) {
+                          <button
+                            type="button"
+                            class="task-example__timeline-marker-clear"
+                            (click)="clearTimelineMarker(entry.id)"
+                          >
+                            {{ copy().clearMarker }}
+                          </button>
+                        }
+                      </section>
+                    }
+
+                    <div class="task-example__timeline-entry-header">
+                      <span class="task-example__timeline-kind">
+                        {{ timelineKindLabel(entry.kind) }}
+                      </span>
+                      <strong>{{ entry.title }}</strong>
+                      <span class="task-example__timeline-count">
+                        ( {{ entry.count }} )
+                      </span>
+                    </div>
+                    <span>{{ entry.summary }}</span>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="task-example__empty">{{ copy().timelineEmpty }}</p>
+            }
+          </section>
+
+          @if (showComposition()) {
+            <section class="task-example__card task-example__card--composition">
+              <header>
+                <h4>{{ copy().compositionTitle }}</h4>
+                <p>{{ copy().compositionText }}</p>
+              </header>
+
+              <p class="task-example__projection">
+                {{ copy().projection }}: {{ runtime().childProjection }}
+              </p>
+
+              <app-live-docs-child-demo
+                [core]="facade.childDemoCore"
+                [lang]="state().lang"
+              />
+            </section>
+          }
+
+          @if (showDevtoolsHint()) {
+            <section class="task-example__card task-example__card--hint">
+              <p>{{ copy().devtoolsHint }}</p>
+            </section>
+          }
+        </section>
+      </div>
+    </details>
+  </section>
+</article>

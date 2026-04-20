@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.controls-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.controls-panel__header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.controls-panel__header h3,
+.controls-panel__header p,
+.controls-panel__hint {
+  margin: 0;
+}
+
+.controls-panel__header p,
+.controls-panel__hint {
+  color: #4b5563;
+  line-height: 1.55;
+}
+
+.controls-panel__actions {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.controls-panel__button {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.controls-panel__button:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.controls-panel__button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}

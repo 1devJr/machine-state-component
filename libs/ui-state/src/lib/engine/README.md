@@ -46,3 +46,48 @@ const artifact = createCoreArtifact(kernel, {
 const core = createComposedEngine(artifact);
 const bindings = createFacadeBindings(core);
 ```
+
+## Nx generator
+
+Use o generator local para criar o scaffold base de um core:
+
+```bash
+NX_DAEMON=false NX_ISOLATE_PLUGINS=false npx nx g @machine-state/engine:core --name=my-docs-core --project=demo-app
+```
+
+Atalho no workspace:
+
+```bash
+npm run gen:core -- --name=my-docs-core --project=demo-app
+```
+
+Generator dedicado para documentacao viva com exemplo interativo:
+
+```bash
+NX_DAEMON=false NX_ISOLATE_PLUGINS=false npx nx g @machine-state/engine:live-docs --name=my-live-docs --project=demo-app
+```
+
+Atalho no workspace:
+
+```bash
+npm run gen:live-docs -- --name=my-live-docs --project=demo-app
+```
+
+Template de referencia orientado a busca:
+
+```bash
+NX_DAEMON=false NX_ISOLATE_PLUGINS=false npx nx g @machine-state/engine:search-example --name=my-search-example --project=demo-app
+```
+
+Atalho do exemplo:
+
+```bash
+npm run gen:search-example -- --name=my-search-example --project=demo-app
+```
+
+Opcoes principais:
+
+- `--name`: nome do core.
+- `--project`: projeto Nx usado para resolver a pasta base.
+- `--directory`: pasta alvo explicita, quando quiser ignorar o projeto.
+- `--prefix`: prefixo do selector Angular.

@@ -72,7 +72,8 @@ export type KernelSelections<
 export type KernelComposedSelections<
   TKernel extends CoreKernel<any, any, any, any, any>,
   TComposedState extends object,
-> = (state: Signal<TComposedState>) => KernelSelections<TKernel>;
+  TSelections extends Record<string, unknown> = KernelSelections<TKernel>,
+> = (state: Signal<TComposedState>) => TSelections;
 
 export type KernelComposedState<
   TKernel extends CoreKernel<any, any, any, any, any>,

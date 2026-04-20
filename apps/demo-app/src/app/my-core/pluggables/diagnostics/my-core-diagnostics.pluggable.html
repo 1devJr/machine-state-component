@@ -1,0 +1,114 @@
+<section class="runtime-panel">
+  <header class="runtime-panel__header">
+    <div>
+      <h3>{{ copy().title }}</h3>
+      <p>{{ copy().subtitle }}</p>
+    </div>
+
+    <button
+      type="button"
+      class="runtime-panel__toggle"
+      (click)="toggleRawData()"
+    >
+      {{ state()?.showRawRuntimeData ? copy().hideRaw : copy().showRaw }}
+    </button>
+  </header>
+
+  <dl class="runtime-panel__summary">
+    <div>
+      <dt>{{ copy().status }}</dt>
+      <dd>{{ state()?.status ?? copy().none }}</dd>
+    </div>
+    <div>
+      <dt>{{ copy().lastAction }}</dt>
+      <dd>{{ flowSummary().action || copy().none }}</dd>
+    </div>
+    <div>
+      <dt>{{ copy().changedFields }}</dt>
+      <dd>{{ flowSummary().changedFields.join(', ') || copy().none }}</dd>
+    </div>
+    <div>
+      <dt>{{ copy().slices }}</dt>
+      <dd>{{ sliceKeys().join(', ') || copy().none }}</dd>
+    </div>
+  </dl>
+
+  <section class="runtime-panel__card">
+    <h4>{{ copy().flowTitle }}</h4>
+    <ul class="runtime-panel__flow">
+      <li>
+        <strong>{{ copy().flowAction }}</strong>
+        <span>{{ flowSummary().action || copy().none }}</span>
+      </li>
+      <li>
+        <strong>{{ copy().flowTransition }}</strong>
+        <span>{{ flowSummary().transition }}</span>
+      </li>
+      <li>
+        <strong>{{ copy().flowEffect }}</strong>
+        <span>{{ flowSummary().effect }}</span>
+      </li>
+      <li>
+        <strong>{{ copy().flowMessage }}</strong>
+        <span>{{ flowSummary().message }}</span>
+      </li>
+    </ul>
+  </section>
+
+  <section class="runtime-panel__card">
+    <h4>{{ copy().selections }}</h4>
+    <ul class="runtime-panel__list">
+      @for (entry of selectionEntries(); track entry.key) {
+      <li>
+        <strong>{{ entry.key }}</strong>
+        <span>{{ entry.value }}</span>
+      </li>
+      }
+    </ul>
+  </section>
+
+  <section class="runtime-panel__card">
+    <h4>{{ copy().timeline }}</h4>
+    @if (timeline().length) {
+    <ul class="runtime-panel__list">
+      @for (entry of timeline(); track entry.id) {
+      <li>
+        <strong>{{ entry.type }}</strong>
+        <span>{{ entry.summary }}</span>
+      </li>
+      }
+    </ul>
+    } @else {
+    <p class="runtime-panel__empty">{{ copy().noEvents }}</p>
+    }
+  </section>
+
+  @if (state()?.showRawRuntimeData) {
+  <section class="runtime-panel__card">
+    <h4>{{ copy().rawData }}</h4>
+
+    <div class="runtime-panel__raw-grid">
+      <div>
+        <h5>{{ copy().selectionSnapshot }}</h5>
+        <pre>{{ selectionJson() }}</pre>
+      </div>
+      <div>
+        <h5>{{ copy().storeSnapshot }}</h5>
+        <pre>{{ stateJson() }}</pre>
+      </div>
+    </div>
+
+    <div>
+      <h5>{{ copy().registeredEffects }}</h5>
+      <ul class="runtime-panel__list">
+        @for (effect of effects(); track effect.id) {
+        <li>
+          <strong>{{ effect.id }}</strong>
+          <span>{{ effect.event }} | priority {{ effect.priority }}</span>
+        </li>
+        }
+      </ul>
+    </div>
+  </section>
+  }
+</section>

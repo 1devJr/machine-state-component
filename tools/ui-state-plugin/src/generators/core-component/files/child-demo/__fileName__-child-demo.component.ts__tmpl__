@@ -1,0 +1,42 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+} from '@angular/core';
+import { <%= className %>ChildDemo } from './<%= fileName %>-child-demo.artifact';
+import { <%= className %>DocLang } from '../store/<%= fileName %>.types';
+
+@Component({
+  selector: '<%= prefix || "app" %>-<%= fileName %>-child-demo',
+  standalone: true,
+  templateUrl: './<%= fileName %>-child-demo.component.html',
+  styleUrl: './<%= fileName %>-child-demo.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class <%= className %>ChildDemoComponent {
+  readonly core = input.required<<%= className %>ChildDemo>();
+  readonly lang = input<<%= className %>DocLang>('pt-br');
+
+  readonly state = computed(() => this.core().facade.state());
+  readonly isPtBr = computed(() => this.lang() === 'pt-br');
+  readonly copy = computed(() => ({
+    title: this.isPtBr() ? 'Demonstração do core filho' : 'Child Core Demo',
+    subtitle: this.isPtBr()
+      ? 'Recebe uma action vinculada do pai e expõe uma projeção reduzida.'
+      : 'Receives a linked parent action and exposes a reduced projection.',
+    clear: this.isPtBr() ? 'Limpar estado do filho' : 'Clear child state',
+    status: this.isPtBr() ? 'Status' : 'Status',
+    eventCount: this.isPtBr() ? 'Contagem de eventos' : 'Event count',
+    lastEvent: this.isPtBr() ? 'Último evento' : 'Last event',
+    notes: this.isPtBr() ? 'Notas recentes' : 'Recent notes',
+    empty: this.isPtBr()
+      ? 'Nenhum evento vinculado foi recebido ainda.'
+      : 'No linked events received yet.',
+    none: this.isPtBr() ? 'nenhum' : 'none',
+  }));
+
+  clear(): void {
+    this.core().actions.clear();
+  }
+}

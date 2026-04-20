@@ -1,0 +1,210 @@
+import type { Signal } from '@angular/core';
+import {
+  createComposition,
+  createCoreArtifact,
+  defineCompositionSchema,
+  defineSelections,
+  optionalSlot,
+  requiredSlot,
+} from '@machine-state-component/ui-state';
+import {
+  create<%= className %>ChildDemo,
+  <%= className %>ChildDemo,
+} from '../child-demo/<%= fileName %>-child-demo.artifact';
+import { <%= className %>ControlsPluggableComponent } from '../pluggables/controls/<%= fileName %>-controls.pluggable';
+import { <%= className %>DiagnosticsPluggableComponent } from '../pluggables/diagnostics/<%= fileName %>-diagnostics.pluggable';
+import { <%= className %>DocsPluggableComponent } from '../pluggables/docs/<%= fileName %>-docs.pluggable';
+import {
+  <%= propertyName %>AdvancedFeatures,
+  <%= propertyName %>FileRules,
+} from './<%= fileName %>.docs';
+import {
+  <%= propertyName %>AdvancedFeaturesPtBr,
+  <%= propertyName %>FileRulesPtBr,
+} from './<%= fileName %>.docs.pt-br';
+import { <%= propertyName %>Kernel } from './<%= fileName %>.kernel';
+import {
+  <%= className %>ControlsConfig,
+  <%= className %>DiagnosticsConfig,
+  <%= className %>DocsConfig,
+  <%= className %>FlowSummary,
+  <%= className %>Services,
+  <%= className %>State,
+} from './<%= fileName %>.types';
+
+type <%= className %>ComposedState = <%= className %>State & {
+  controls?: {
+    lastScenario: string | null;
+  };
+  diagnostics?: {
+    pinnedTimeline: boolean;
+  };
+  docs?: {
+    lastMode: string;
+  };
+  scratchpad?: {
+    mountedAt: string;
+    toggles: number;
+  };
+  childDemoProjection?: {
+    status: string;
+    eventCount: number;
+    lastEventType: string | null;
+  };
+};
+
+export interface <%= className %>RuntimeInspector {
+  getEventTimeline: () => readonly {
+    id: number;
+    type: string;
+    summary: string;
+  }[];
+  getStateSnapshot: () => Record<string, unknown>;
+  getSelectionSnapshot: () => Record<string, unknown>;
+  getSliceKeys: () => readonly string[];
+  getEffects: () => ReadonlyArray<{
+    id: string;
+    event: string;
+    priority: number;
+  }>;
+  getFlowSummary: () => <%= className %>FlowSummary;
+}
+
+export const <%= propertyName %>CompositionSchema = defineCompositionSchema({
+  controls: requiredSlot<<%= className %>ControlsConfig>(),
+  diagnostics: requiredSlot<<%= className %>DiagnosticsConfig>(),
+  docs: requiredSlot<<%= className %>DocsConfig>(),
+  childDemo: optionalSlot<Record<string, never>>(),
+});
+
+export function create<%= className %>Artifact(
+  demoApi: <%= className %>Services['demoApi'],
+  runtimeBridge: <%= className %>Services['runtimeBridge'],
+  childDemoCore: <%= className %>ChildDemo = create<%= className %>ChildDemo(),
+  runtimeInspector?: <%= className %>RuntimeInspector,
+) {
+  return createCoreArtifact(<%= propertyName %>Kernel, {
+    services: {
+      demoApi,
+      runtimeBridge,
+    },
+    selections: defineSelections((state: Signal<<%= className %>ComposedState>) => ({
+      ...<%= propertyName %>Kernel.selections(
+        state as unknown as Signal<<%= className %>State>,
+      ),
+      registeredSliceKeys: () =>
+        [
+          'controls',
+          'diagnostics',
+          'docs',
+          'childDemoProjection',
+          'scratchpad',
+        ].filter(
+          (key) => state()[key as keyof <%= className %>ComposedState] !== undefined,
+        ),
+      hasChildProjection: () => !!state().childDemoProjection,
+      childProjectionSummary: () => {
+        const projection = state().childDemoProjection;
+        if (!projection) {
+          return state().lang === 'pt-br'
+            ? 'A projecao do core filho ainda nao foi montada.'
+            : 'The child-core projection is not mounted yet.';
+        }
+
+        return state().lang === 'pt-br'
+          ? `${projection.status} | ${projection.eventCount} evento(s) | ultimo: ${projection.lastEventType ?? 'nenhum'}`
+          : `${projection.status} | ${projection.eventCount} event(s) | last: ${projection.lastEventType ?? 'none'}`;
+      },
+    })),
+    composition: (ctx) =>
+      createComposition(<%= propertyName %>CompositionSchema, {
+        parentPort: ctx.parentPort,
+      })
+        .withSlot(
+          'controls',
+          <%= className %>ControlsPluggableComponent,
+          {
+            title: 'Interactive playground',
+            subtitle:
+              'Dispatch one action and inspect the result before moving to the next concept.',
+            successLabel: 'Run success flow',
+            errorLabel: 'Run error flow',
+            resetLabel: 'Reset',
+          },
+          {
+            sliceInitialState: {
+              lastScenario: null as string | null,
+            },
+          },
+        )
+        .withSlot(
+          'diagnostics',
+          <%= className %>DiagnosticsPluggableComponent,
+          {
+            getEventTimeline: runtimeInspector?.getEventTimeline ?? (() => []),
+            getStateSnapshot:
+              runtimeInspector?.getStateSnapshot ?? (() => ({})),
+            getSelectionSnapshot:
+              runtimeInspector?.getSelectionSnapshot ?? (() => ({})),
+            getSliceKeys: runtimeInspector?.getSliceKeys ?? (() => []),
+            getEffects: runtimeInspector?.getEffects ?? (() => []),
+            getFlowSummary:
+              runtimeInspector?.getFlowSummary ??
+              (() => ({
+                action: 'none',
+                transition: 'No transition yet.',
+                effect: 'none',
+                changedFields: [],
+                message: 'No runtime activity yet.',
+              })),
+          },
+          {
+            sliceInitialState: {
+              pinnedTimeline: false,
+            },
+          },
+        )
+        .withSlot(
+          'docs',
+          <%= className %>DocsPluggableComponent,
+          {
+            fileRules: <%= propertyName %>FileRules,
+            fileRulesPtBr: <%= propertyName %>FileRulesPtBr,
+            advancedFeatures: <%= propertyName %>AdvancedFeatures,
+            advancedFeaturesPtBr: <%= propertyName %>AdvancedFeaturesPtBr,
+          },
+          {
+            sliceInitialState: {
+              lastMode: 'flow',
+            },
+          },
+        )
+        .withChildCore('childDemo', childDemoCore.connectionPort)
+        .connectChild('childDemo', ({ parent, child, link }) => ({
+          parentToChild: [
+            link(
+              parent.actions.runDemoAction,
+              child.actions.recordParentEvent,
+            ).map((event) => ({
+              eventType: event.type,
+              note: `Parent dispatched "${event.label}".`,
+            })),
+          ],
+          projection: {
+            initialState: {
+              status: 'idle',
+              eventCount: 0,
+              lastEventType: null as string | null,
+            },
+            select: (childState) => ({
+              status: childState.status,
+              eventCount: childState.eventCount,
+              lastEventType: childState.lastEventType,
+            }),
+          },
+        }))
+        .build(),
+  });
+}
+
+export type <%= className %>Artifact = ReturnType<typeof create<%= className %>Artifact>;

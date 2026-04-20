@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { EngineFacade } from './engine.facade';
 import { EngineState } from '../store/engine.types';
 
@@ -148,5 +148,53 @@ describe('EngineFacade', () => {
     expect(calls.filter((item) => item === 'left').length).toBe(1);
     expect(calls.filter((item) => item === '10').length).toBe(1);
     expect(calls.filter((item) => item === '20').length).toBe(1);
+  });
+
+  it('encaminha falhas de effects para o handler configurado', async () => {
+    const onEffectError = vi.fn();
+
+    const facade = new EngineFacade<TestState, Status, TestEvent>({
+      initialState: {
+        status: 'idle',
+        count: 0,
+      },
+      onEffectError,
+    });
+
+    facade.registerEffects([
+      {
+        id: 'run-sync-fail',
+        event: 'run',
+        handler: () => {
+          throw new Error('sync');
+        },
+      },
+      {
+        id: 'run-async-fail',
+        event: 'run',
+        handler: async () => {
+          throw new Error('async');
+        },
+      },
+    ]);
+
+    facade.commands.dispatch({ type: 'run' });
+    await Promise.resolve();
+
+    expect(onEffectError).toHaveBeenCalledTimes(2);
+    expect(onEffectError).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        effectId: 'run-sync-fail',
+        eventType: 'run',
+      }),
+    );
+    expect(onEffectError).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        effectId: 'run-async-fail',
+        eventType: 'run',
+      }),
+    );
   });
 });

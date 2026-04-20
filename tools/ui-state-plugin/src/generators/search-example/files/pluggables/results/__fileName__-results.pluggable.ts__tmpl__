@@ -1,0 +1,29 @@
+import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { definePluggableStoreArtifacts } from '@machine-state-component/ui-state';
+import { <%= propertyName %>Actions } from '../../store/<%= fileName %>.actions';
+import { PluggableBase } from '../../store/<%= fileName %>.kernel';
+import { <%= className %>ResultsConfig } from '../../store/<%= fileName %>.types';
+
+@Component({
+  selector: 'app-<%= fileName %>-results-pluggable',
+  standalone: true,
+  templateUrl: './<%= fileName %>-results.pluggable.html',
+  styleUrl: './<%= fileName %>-results.pluggable.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class <%= className %>ResultsPluggableComponent extends PluggableBase<<%= className %>ResultsConfig> {
+  static readonly storeArtifacts = definePluggableStoreArtifacts({});
+
+  readonly results = computed(() => this.state()?.results ?? []);
+  readonly selectedItem = computed(() => this.state()?.selectedItemName ?? null);
+
+  protected override getDefaultConfig(): <%= className %>ResultsConfig {
+    return {
+      emptyMessage: 'No results yet.',
+    };
+  }
+
+  selectItem(name: string): void {
+    this.dispatch(<%= propertyName %>Actions.selectItem(name));
+  }
+}

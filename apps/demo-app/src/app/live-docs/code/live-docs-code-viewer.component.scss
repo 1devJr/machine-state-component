@@ -1,0 +1,117 @@
+:host {
+  display: block;
+}
+
+.live-docs-code-viewer {
+  --editor-bg: #1e1f29;
+  --editor-bg-soft: #252733;
+  --editor-line: rgba(255, 255, 255, 0.08);
+  --editor-text: #d4d4d4;
+  --editor-gutter: #7f8490;
+  --editor-keyword: #c586c0;
+  --editor-string: #ce9178;
+  --editor-comment: #6a9955;
+  --editor-number: #b5cea8;
+  --editor-type: #4ec9b0;
+  --editor-type-ref: #4fc1ff;
+  --editor-function: #dcdcaa;
+  --editor-decorator: #ffd166;
+  --editor-literal: #569cd6;
+  --editor-operator: #d4d4d4;
+  --editor-punctuation: #d4d4d4;
+
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  overflow: auto;
+  border-radius: 1.2rem;
+  border: 1px solid #111827;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    var(--editor-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.live-docs-code-viewer__gutter,
+.live-docs-code-viewer__content {
+  padding: 1rem 0;
+}
+
+.live-docs-code-viewer__gutter {
+  display: grid;
+  min-width: 4rem;
+  text-align: right;
+  padding-left: 0.95rem;
+  padding-right: 0.9rem;
+  border-right: 1px solid var(--editor-line);
+  background: var(--editor-bg-soft);
+}
+
+.live-docs-code-viewer__gutter span,
+.live-docs-code-viewer__line {
+  min-height: 1.65rem;
+  line-height: 1.65rem;
+  font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.92rem;
+}
+
+.live-docs-code-viewer__gutter span {
+  color: var(--editor-gutter);
+  user-select: none;
+}
+
+.live-docs-code-viewer__content {
+  display: grid;
+  min-width: max-content;
+  padding-left: 1rem;
+  padding-right: 1.2rem;
+}
+
+.live-docs-code-viewer__line {
+  white-space: pre;
+  color: var(--editor-text);
+}
+
+.live-docs-code-viewer__token--plain {
+  color: var(--editor-text);
+}
+
+.live-docs-code-viewer__token--comment {
+  color: var(--editor-comment);
+}
+
+.live-docs-code-viewer__token--string {
+  color: var(--editor-string);
+}
+
+.live-docs-code-viewer__token--keyword {
+  color: var(--editor-keyword);
+}
+
+.live-docs-code-viewer__token--literal {
+  color: var(--editor-literal);
+}
+
+.live-docs-code-viewer__token--type {
+  color: var(--editor-type);
+}
+
+.live-docs-code-viewer__token--type-ref {
+  color: var(--editor-type-ref);
+}
+
+.live-docs-code-viewer__token--function {
+  color: var(--editor-function);
+}
+
+.live-docs-code-viewer__token--decorator {
+  color: var(--editor-decorator);
+}
+
+.live-docs-code-viewer__token--number {
+  color: var(--editor-number);
+}
+
+.live-docs-code-viewer__token--operator,
+.live-docs-code-viewer__token--punctuation {
+  color: var(--editor-operator);
+}

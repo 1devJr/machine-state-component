@@ -1,0 +1,31 @@
+<article class="core-example">
+  <header class="core-example__header">
+    <div>
+      <h2>Task Board Core</h2>
+      <p>
+        Mesmo pluggable, mas aqui a action abre uma modal local controlada pelo
+        proprio core.
+      </p>
+    </div>
+  </header>
+
+  <section class="core-example__panel">
+    <div
+      [uiEngineSlot]="facade.composition.slotIds.primaryAction"
+      [pluggable]="facade.composition.slots.primaryAction"
+      [facade]="facade.engineFacade"
+    ></div>
+  </section>
+
+  @if (facade.selections.modalOpen()) {
+    <section class="core-example__modal">
+      <div>
+        <h3>Create task modal</h3>
+        <p>This modal was opened by the core action `openCreateTaskModal`.</p>
+      </div>
+      <button type="button" (click)="facade.actions.closeCreateTaskModal()">
+        Close modal
+      </button>
+    </section>
+  }
+</article>

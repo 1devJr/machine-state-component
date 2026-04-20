@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Signal } from '@angular/core';
 import { EnginePluggableBase } from '../pluggables/pluggable.base';
 import type { ActionCreatorRecord } from '../pluggables/pluggable.types';
@@ -16,9 +15,12 @@ export function defineStore<TState extends object>(
   return store;
 }
 
-export function defineSelections<TSelections extends Record<string, unknown>>(
-  selections: (state: Signal<any>) => TSelections,
-): (state: Signal<any>) => TSelections {
+export function defineSelections<
+  TState extends object,
+  TSelections extends Record<string, unknown>,
+>(
+  selections: (state: Signal<TState>) => TSelections,
+): (state: Signal<TState>) => TSelections {
   return selections;
 }
 

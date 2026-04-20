@@ -1,0 +1,54 @@
+import { EngineState } from '@machine-state-component/ui-state';
+
+export type <%= className %>Status = 'idle' | 'loading' | 'ready' | 'error';
+
+export interface <%= className %>Details {
+  id: string;
+  title: string;
+  description: string;
+  tags: string[];
+}
+
+export interface <%= className %>State extends EngineState<<%= className %>Status> {
+  query: string;
+  results: string[];
+  errorMessage: string | null;
+  selectedItemName: string | null;
+  selectedItemDetails: <%= className %>Details | null;
+  detailsStatus: <%= className %>Status;
+  detailsErrorMessage: string | null;
+}
+
+export interface <%= className %>InputConfig {
+  placeholder: string;
+  buttonLabel: string;
+}
+
+export interface <%= className %>ResultsConfig {
+  emptyMessage: string;
+}
+
+export interface <%= className %>DetailsConfig {
+  emptyMessage: string;
+}
+
+export interface <%= className %>Services {
+  [key: string]: unknown;
+  dataApi: {
+    search: (query: string) => string[];
+    getDetails: (name: string) => <%= className %>Details | null;
+  };
+}
+
+export function create<%= className %>InitialState(): <%= className %>State {
+  return {
+    status: 'idle',
+    query: '',
+    results: [],
+    errorMessage: null,
+    selectedItemName: null,
+    selectedItemDetails: null,
+    detailsStatus: 'idle',
+    detailsErrorMessage: null,
+  };
+}
