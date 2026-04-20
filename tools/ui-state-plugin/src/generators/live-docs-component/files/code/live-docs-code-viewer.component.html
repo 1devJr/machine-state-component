@@ -1,0 +1,23 @@
+<section class="live-docs-code-viewer" aria-label="Highlighted source code">
+  <div class="live-docs-code-viewer__gutter" aria-hidden="true">
+    @for (line of lines(); track line.number) {
+      <span>{{ line.number }}</span>
+    }
+  </div>
+
+  <div class="live-docs-code-viewer__content">
+    @for (line of lines(); track line.number) {
+      <div class="live-docs-code-viewer__line">
+        @for (token of line.tokens; track $index) {
+          <span
+            [class]="
+              'live-docs-code-viewer__token live-docs-code-viewer__token--' +
+              token.kind
+            "
+            >{{ token.value }}</span
+          >
+        }
+      </div>
+    }
+  </div>
+</section>
