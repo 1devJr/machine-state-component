@@ -67,11 +67,13 @@ export function createEffectRegistry<
     },
 
     listByEvent(eventType) {
-      return effectsByEvent.get(eventType) ?? [];
+      const eventEffects = effectsByEvent.get(eventType);
+      return eventEffects ? [...eventEffects] : [];
     },
 
     clear() {
       effects.length = 0;
+      effectsByEvent.clear();
     },
   };
 }

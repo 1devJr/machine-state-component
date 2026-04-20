@@ -13,18 +13,6 @@ export function createHookRegistry<
   TEvent extends EngineEvent,
 >(): HookRegistry<TState, TStatus, TEvent> {
   const hooks: ReducerHook<TState, TStatus, TEvent>[] = [];
-  const runHookSafely = (
-    phase: 'onBeforeTransition' | 'onAfterTransition',
-    hook: ReducerHook<TState, TStatus, TEvent>,
-    state: TState,
-    event: TEvent,
-  ) => {
-    try {
-      hook[phase]?.(state, event);
-    } catch (error) {
-      console.error(`[HookRegistry] ${phase} hook failed`, error);
-    }
-  };
 
   return {
     register(hook) {
@@ -39,13 +27,13 @@ export function createHookRegistry<
 
     runBefore(state, event) {
       for (const hook of [...hooks]) {
-        runHookSafely('onBeforeTransition', hook, state, event);
+        hook.onBeforeTransition?.(state, event);
       }
     },
 
     runAfter(state, event) {
       for (const hook of [...hooks]) {
-        runHookSafely('onAfterTransition', hook, state, event);
+        hook.onAfterTransition?.(state, event);
       }
     },
 

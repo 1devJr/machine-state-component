@@ -27,18 +27,24 @@ export class LiveDocsMermaidDirective implements OnDestroy {
   readonly #element = inject(ElementRef<HTMLElement>);
   readonly #platformId = inject(PLATFORM_ID);
   #globalCallbackName: string | null = null;
+  #latestRenderRequestId = 0;
+  #destroyed = false;
 
   constructor() {
     effect(() => {
-      void this.#render(this.diagram(), this.nodeLinks());
+      const renderRequestId = ++this.#latestRenderRequestId;
+      void this.#render(renderRequestId, this.diagram(), this.nodeLinks());
     });
   }
 
   ngOnDestroy(): void {
+    this.#destroyed = true;
+    this.#latestRenderRequestId += 1;
     this.#clearGlobalCallback();
   }
 
   async #render(
+    renderRequestId: number,
     diagram: string,
     nodeLinks: Partial<Record<string, LiveDocsSectionId>>,
   ): Promise<void> {
@@ -76,14 +82,26 @@ export class LiveDocsMermaidDirective implements OnDestroy {
         this.#withNodeClicks(diagram, nodeLinks, callbackName),
       );
 
+      if (!this.#isActiveRender(renderRequestId)) {
+        return;
+      }
+
       host.innerHTML = svg;
       bindFunctions?.(host);
       this.#decorateClickableNodes(host, nodeLinks);
       host.removeAttribute('data-fallback');
     } catch {
+      if (!this.#isActiveRender(renderRequestId)) {
+        return;
+      }
+
       host.textContent = diagram;
       host.setAttribute('data-fallback', 'true');
     }
+  }
+
+  #isActiveRender(renderRequestId: number): boolean {
+    return !this.#destroyed && renderRequestId === this.#latestRenderRequestId;
   }
 
   #withNodeClicks(
