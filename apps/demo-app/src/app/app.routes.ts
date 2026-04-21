@@ -4,14 +4,7 @@ export const appRoutes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'live-docs',
-  },
-  {
-    path: 'live-docs',
-    loadComponent: () =>
-      import('./live-docs/live-docs-page.component').then(
-        (module) => module.LiveDocsPageComponent,
-      ),
+    redirectTo: 'pokemon-search',
   },
   {
     path: 'movie-search',
@@ -57,6 +50,6 @@ export const appRoutes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'live-docs',
+    redirectTo: 'pokemon-search',
   },
 ];

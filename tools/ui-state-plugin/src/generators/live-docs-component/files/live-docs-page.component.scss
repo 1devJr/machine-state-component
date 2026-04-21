@@ -11,6 +11,7 @@
   --accent-soft: #eff6ff;
   --card: #fffdfa;
   display: grid;
+  min-width: 0;
   gap: 1.5rem;
 }
 
@@ -137,8 +138,8 @@
 
 .live-docs__layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 1.25rem;
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+  gap: clamp(1rem, 1.6vw, 1.5rem);
   align-items: start;
 }
 
@@ -177,6 +178,7 @@
 
 .live-docs__main {
   display: grid;
+  min-width: 0;
   gap: 1rem;
 }
 
@@ -326,24 +328,90 @@
 @media (max-width: 1040px) {
   .live-docs__layout {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .live-docs__sidebar {
     position: static;
+    padding: 0.9rem;
+  }
+
+  .live-docs__sidebar nav {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .live-docs__sidebar nav button {
+    border: 1px solid #dbe7f5;
+    background: rgba(255, 255, 255, 0.8);
   }
 }
 
 @media (max-width: 760px) {
+  .live-docs {
+    gap: 1rem;
+  }
+
   .live-docs__hero {
+    padding: 1.2rem;
     grid-template-columns: 1fr;
+    border-radius: 1.4rem;
   }
 
   .live-docs__hero-actions {
     justify-content: start;
+    gap: 0.55rem;
+  }
+
+  .live-docs__hero-actions button,
+  .live-docs__viewer-tabs button,
+  .live-docs__source-tabs button {
+    flex: 1 1 180px;
+  }
+
+  .live-docs__section-head h3 {
+    font-size: clamp(1.45rem, 8vw, 1.95rem);
+  }
+
+  .live-docs__viewer {
+    padding: 0.95rem;
+    border-radius: 1.4rem;
+  }
+
+  .live-docs__walkthrough-card,
+  .live-docs__link-grid a,
+  .live-docs__card {
+    padding: 0.9rem;
   }
 
   .live-docs__link-grid,
   .live-docs__cards {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .live-docs__hero {
+    padding: 1rem;
+  }
+
+  .live-docs__hero-actions button,
+  .live-docs__viewer-tabs button,
+  .live-docs__source-tabs button {
+    flex-basis: 100%;
+  }
+
+  .live-docs__sidebar {
+    padding: 0.75rem;
+  }
+
+  .live-docs__sidebar nav {
+    grid-template-columns: 1fr;
+  }
+
+  .live-docs__viewer-note,
+  .live-docs__diagram,
+  .live-docs__walkthrough-hint {
+    padding: 0.8rem;
   }
 }

@@ -13,10 +13,9 @@
     "lib": ["es2020", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
-    "baseUrl": ".",
     "paths": {
-      "@machine-state/engine": ["tools/ui-state-plugin"],
-      "@machine-state-component/ui-state": ["libs/ui-state/src/index.ts"]
+      "@machine-state/engine": ["./tools/ui-state-plugin"],
+      "@machine-state-component/ui-state": ["./libs/ui-state/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

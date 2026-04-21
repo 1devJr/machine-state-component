@@ -7,8 +7,8 @@ import {
   optionalSlot,
   requiredSlot,
 } from '@machine-state-component/ui-state';
-import { PrimaryActionButtonConfig } from '../../../shared/pluggables/primary-action-button/primary-action-button.pluggable';
-import { PrimaryActionButtonPluggableComponent } from '../../../shared/pluggables/primary-action-button/primary-action-button.pluggable';
+import { PrimaryActionButtonConfig } from '../pluggables/primary-action-button/primary-action-button.pluggable';
+import { PrimaryActionButtonPluggableComponent } from '../pluggables/primary-action-button/primary-action-button.pluggable';
 import {
   createLiveDocsChildDemo,
   LiveDocsChildDemo,

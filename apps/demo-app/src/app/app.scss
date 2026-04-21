@@ -1,8 +1,8 @@
 .app-shell {
-  width: min(1180px, calc(100% - 2rem));
+  width: min(1560px, calc(100% - 2.5rem));
   margin: 0 auto;
   min-height: 100vh;
-  padding: 1.5rem 0 2.5rem;
+  padding: 1.5rem 0 2.75rem;
   display: grid;
   align-content: start;
   gap: 1.5rem;
@@ -66,4 +66,12 @@
 
 .app-shell__content {
   min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    width: calc(100% - 1rem);
+    padding: 1rem 0 2rem;
+    gap: 1rem;
+  }
 }
