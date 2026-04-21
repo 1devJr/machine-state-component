@@ -81,9 +81,19 @@
   gap: 0.45rem;
 }
 
+@media (max-width: 900px) {
+  .child-demo__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 720px) {
   .child-demo__header {
     flex-direction: column;
+  }
+
+  .child-demo__header button {
+    width: 100%;
   }
 
   .child-demo__metrics {

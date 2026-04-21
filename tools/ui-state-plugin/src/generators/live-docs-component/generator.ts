@@ -1,5 +1,9 @@
 import { formatFiles, joinPathFragments, Tree } from '@nx/devkit';
-import { CoreComponentGeneratorSchema, normalizeOptions } from '../shared';
+import {
+  addLazyRouteToAppRoutes,
+  CoreComponentGeneratorSchema,
+  normalizeOptions,
+} from '../shared';
 
 const liveDocsTemplateRoot =
   'tools/ui-state-plugin/src/generators/live-docs-component/files';
@@ -196,6 +200,13 @@ export default async function liveDocsComponentGenerator(
       transformReferenceContent(sourceContent, normalized),
     );
   }
+
+  addLazyRouteToAppRoutes(
+    tree,
+    normalized.targetRoot,
+    `${normalized.fileName}-page.component.ts`,
+    `${normalized.className}PageComponent`,
+  );
 
   if (!normalized.skipFormat) {
     await formatFiles(tree);

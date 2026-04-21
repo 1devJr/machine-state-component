@@ -1,0 +1,21 @@
+{
+  "name": "@machine-state-component/ui-state",
+  "version": "0.0.1",
+  "description": "Artifact-first Angular state engine with explicit actions, transitions, effects, selections, composition slots and optional devtools.",
+  "keywords": [
+    "angular",
+    "state",
+    "signals",
+    "state-machine",
+    "ui"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@angular/common": "~21.0.0",
+    "@angular/core": "~21.0.0"
+  },
+  "sideEffects": false
+}
